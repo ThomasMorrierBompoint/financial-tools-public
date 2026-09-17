@@ -33,6 +33,7 @@
   <script src="./js/utils/levier-defaults.js"></script>
   <script src="./js/utils/levier-prompt.js"></script>
   <script src="./js/utils/levier-validate.js"></script>
+  <script src="./js/utils/levier-seeds.js"></script>
 
   <!-- Every brand pack, so the contrast cases below cover all of them. -->
   <script src="./brands/bnc.js"></script>
@@ -576,6 +577,441 @@
       values.financing.horizons = [20];
       values.financing.amortization = 20;
       eq(LevierValidate.validate(values).length, 0);
+    });
+
+    /* ─── levier-seeds.js — the editor seeds are the source prompt ───────────────────────────────
+
+       The seeds are generated (tools/make-seeds.js) and never hand-edited, so what has to be
+       pinned is the round trip: DeltaText.toText() of each seed must reproduce its section of the
+       source file exactly — same headings, same bullets, same wording. Unlike the VARIABLES block
+       there is no Intl in the path, so this is byte equality with no normalizing.
+
+       These four cases are what makes "regenerate the seeds" a safe operation. ─────────────────── */
+
+    const SEED_ANALYSIS_FR = `# **ANALYSE**
+
+## **1. Financement**
+
+Calculer pour chaque horizon :
+
+- paiements totaux;
+- capital remboursé;
+- intérêts payés;
+- solde restant;
+- coût effectif du financement;
+- effort de trésorerie mensuel et annuel.
+
+Si le taux est variable, comparer le scénario de référence avec des scénarios raisonnables de hausse et de baisse des taux.
+
+Ne pas considérer le remboursement du capital comme une dépense économique : il réduit simultanément la dette.
+
+## **2. Fiscalité**
+
+Appliquer le traitement fiscal approprié au type de compte et à la province indiqués dans les variables.
+
+Lorsque pertinent, considérer :
+
+- déductibilité des intérêts;
+- gains en capital;
+- dividendes;
+- revenus d’intérêts;
+- retraits de comptes enregistrés;
+- pertes en capital.
+
+Pour un compte non enregistré, distinguer les sources de rendement lorsque leur traitement fiscal influence significativement le résultat.
+
+Indiquer explicitement les hypothèses fiscales utilisées.
+
+## **3. Rendement de l’investissement**
+
+Pour chaque rendement et chaque horizon, calculer :
+
+- valeur brute du portefeuille;
+- frais de gestion cumulés;
+- valeur après impôt;
+- rendement annualisé;
+- résultat nominal;
+- résultat réel après inflation.
+
+Ne pas considérer qu’un rendement espéré supérieur au taux d’emprunt implique automatiquement que la stratégie est avantageuse. Le rendement du portefeuille est incertain alors que le coût de la dette est contractuel.
+
+## **4. Scénarios de marché**
+
+Analyser :
+
+### **Marché normal**
+
+Aucune correction majeure.
+
+### **Krach au début**
+
+Appliquer la correction définie dans les variables au début de l’horizon.
+
+### **Krach au milieu**
+
+Appliquer la même correction approximativement au milieu de l’horizon.
+
+### **Krach vers la fin**
+
+Appliquer la correction peu avant la fin de l’horizon.
+
+Comparer les résultats afin d’illustrer le risque lié à la séquence des rendements.
+
+## **5. Valeur nette**
+
+Calculer :
+
+**Valeur nette = valeur après impôt du portefeuille − solde restant de la dette − frais de liquidation éventuels.**
+
+Puis :
+
+**Gain/perte économique = valeur nette − capitaux personnels nets injectés dans la stratégie.**
+
+Éviter tout double comptage du remboursement du capital.
+
+## **6. Stratégies de comparaison**
+
+Comparer trois stratégies avec un effort de trésorerie aussi équivalent que possible.
+
+### **A — Investissement avec effet de levier**
+
+Emprunter le montant indiqué et l’investir immédiatement.
+
+### **B — Investissement sans effet de levier**
+
+Ne pas emprunter et investir progressivement l’équivalent de l’effort de trésorerie nécessaire à la stratégie A.
+
+### **C — Réduction de dette**
+
+Ne pas effectuer l’investissement avec effet de levier et utiliser le même effort de trésorerie pour réduire une dette existante.
+
+Expliquer les ajustements nécessaires pour assurer une comparaison économiquement équitable.
+
+## **7. Seuil de rentabilité**
+
+Calculer le rendement annuel approximatif nécessaire pour que la stratégie avec effet de levier :
+
+- couvre son coût de financement;
+- atteigne un gain économique nul après impôt et frais;
+- dépasse la stratégie sans levier;
+- dépasse la stratégie de remboursement de dette.
+
+Présenter les seuils avant et après fiscalité lorsque pertinent.
+
+## **8. Analyse de sensibilité**
+
+Mesurer l’impact des principales variables :
+
+- rendement;
+- taux d’intérêt;
+- inflation;
+- fiscalité;
+- frais de gestion;
+- horizon;
+- ampleur du krach;
+- moment du krach;
+- volatilité.
+
+Identifier les variables ayant le plus d’impact sur le résultat.
+
+## **9. Simulation Monte-Carlo**
+
+Si activée dans les variables, effectuer une simulation probabiliste.
+
+Présenter :
+
+- P10;
+- P25;
+- P50;
+- P75;
+- P90;
+- probabilité de perte nette;
+- probabilité de sous-performer le coût du financement;
+- probabilité de sous-performer la stratégie sans levier.
+
+Expliquer les hypothèses utilisées pour le rendement moyen, la volatilité et la distribution des rendements.
+
+## **10. Stress tests**
+
+Tester des combinaisons raisonnables d’événements défavorables, notamment :
+
+- krach boursier + hausse des taux;
+- rendement faible prolongé + taux élevés;
+- krach + besoin de liquidation anticipée.
+
+Évaluer l’impact sur la valeur nette et les besoins de trésorerie.`;
+
+    const SEED_ANALYSIS_EN = `# **ANALYSIS**
+
+## **1. Financing**
+
+Calculate for each horizon:
+
+- total payments;
+- principal repaid;
+- interest paid;
+- remaining balance;
+- effective cost of the financing;
+- monthly and annual cash-flow effort.
+
+If the rate is variable, compare the baseline scenario with reasonable rate-increase and rate-decrease scenarios.
+
+Do not treat the repayment of principal as an economic expense: it simultaneously reduces the debt.
+
+## **2. Taxation**
+
+Apply the tax treatment appropriate to the account type and province indicated in the variables.
+
+Where relevant, consider:
+
+- deductibility of interest;
+- capital gains;
+- dividends;
+- interest income;
+- withdrawals from registered accounts;
+- capital losses.
+
+For a non-registered account, distinguish between the sources of return when their tax treatment significantly influences the result.
+
+Explicitly state the tax assumptions used.
+
+## **3. Investment return**
+
+For each return and each horizon, calculate:
+
+- gross portfolio value;
+- cumulative management fees;
+- after-tax value;
+- annualized return;
+- nominal result;
+- real result after inflation.
+
+Do not assume that an expected return higher than the borrowing rate automatically implies that the strategy is advantageous. The portfolio's return is uncertain whereas the cost of the debt is contractual.
+
+## **4. Market scenarios**
+
+Analyze:
+
+### **Normal market**
+
+No major correction.
+
+### **Crash at the beginning**
+
+Apply the correction defined in the variables at the beginning of the horizon.
+
+### **Crash in the middle**
+
+Apply the same correction approximately at the middle of the horizon.
+
+### **Crash near the end**
+
+Apply the correction shortly before the end of the horizon.
+
+Compare the results in order to illustrate the risk related to the sequence of returns.
+
+## **5. Net worth**
+
+Calculate:
+
+**Net worth = after-tax value of the portfolio − remaining debt balance − any liquidation fees.**
+
+Then:
+
+**Economic gain/loss = net worth − net personal capital injected into the strategy.**
+
+Avoid any double counting of the principal repayment.
+
+## **6. Comparison strategies**
+
+Compare three strategies with a cash-flow effort that is as equivalent as possible.
+
+### **A — Leveraged investment**
+
+Borrow the stated amount and invest it immediately.
+
+### **B — Unleveraged investment**
+
+Do not borrow, and progressively invest the equivalent of the cash-flow effort required by strategy A.
+
+### **C — Debt reduction**
+
+Do not carry out the leveraged investment and use the same cash-flow effort to reduce an existing debt.
+
+Explain the adjustments needed to ensure an economically fair comparison.
+
+## **7. Break-even point**
+
+Calculate the approximate annual return required for the leveraged strategy to:
+
+- cover its financing cost;
+- reach a zero economic gain after tax and fees;
+- outperform the unleveraged strategy;
+- outperform the debt-repayment strategy.
+
+Present the thresholds before and after tax where relevant.
+
+## **8. Sensitivity analysis**
+
+Measure the impact of the main variables:
+
+- return;
+- interest rate;
+- inflation;
+- taxation;
+- management fees;
+- horizon;
+- magnitude of the crash;
+- timing of the crash;
+- volatility.
+
+Identify the variables with the greatest impact on the result.
+
+## **9. Monte Carlo simulation**
+
+If enabled in the variables, run a probabilistic simulation.
+
+Present:
+
+- P10;
+- P25;
+- P50;
+- P75;
+- P90;
+- probability of a net loss;
+- probability of underperforming the cost of the financing;
+- probability of underperforming the unleveraged strategy.
+
+Explain the assumptions used for the average return, the volatility and the distribution of returns.
+
+## **10. Stress tests**
+
+Test reasonable combinations of adverse events, in particular:
+
+- market crash + rate increase;
+- prolonged low returns + high rates;
+- crash + need for early liquidation.
+
+Assess the impact on net worth and on cash-flow needs.`;
+
+    const SEED_PRESENTATION_FR = `# **PRÉSENTATION DES RÉSULTATS**
+
+Présenter les résultats principalement sous forme de tableaux comparatifs.
+
+Pour chaque horizon, afficher au minimum :
+
+- valeur finale du portefeuille;
+- valeur après impôt;
+- intérêts cumulés;
+- capital remboursé;
+- solde restant de la dette;
+- capitaux personnels injectés;
+- valeur nette;
+- gain/perte économique;
+- rendement annualisé;
+- résultat réel après inflation;
+- seuil de rentabilité.
+
+Séparer clairement :
+
+1. résultats déterministes;
+2. scénarios de krach;
+3. stress tests;
+4. simulation probabiliste;
+5. comparaison des stratégies.
+
+Terminer par une synthèse expliquant :
+
+- les conditions dans lesquelles la stratégie crée ou détruit de la valeur;
+- le rendement nécessaire pour justifier économiquement l’effet de levier;
+- l’impact de l’horizon;
+- l’impact des taux d’intérêt;
+- l’impact de la fiscalité;
+- l’impact de la séquence des rendements;
+- les principaux risques;
+- les hypothèses auxquelles les conclusions sont les plus sensibles.
+
+Ne pas évaluer la stratégie uniquement en comparant le rendement boursier au taux d’emprunt. L’évaluer selon sa **valeur nette, son coût d’opportunité, sa fiscalité, ses flux de trésorerie et le risque assumé**.
+
+Signaler clairement toute donnée manquante ou approximation susceptible de modifier significativement les résultats.`;
+
+    const SEED_PRESENTATION_EN = `# **PRESENTATION OF RESULTS**
+
+Present the results primarily in the form of comparative tables.
+
+For each horizon, display at a minimum:
+
+- final portfolio value;
+- after-tax value;
+- cumulative interest;
+- principal repaid;
+- remaining debt balance;
+- personal capital injected;
+- net worth;
+- economic gain/loss;
+- annualized return;
+- real result after inflation;
+- break-even point.
+
+Clearly separate:
+
+1. deterministic results;
+2. crash scenarios;
+3. stress tests;
+4. probabilistic simulation;
+5. comparison of the strategies.
+
+End with a synthesis explaining:
+
+- the conditions under which the strategy creates or destroys value;
+- the return required to economically justify the leverage;
+- the impact of the horizon;
+- the impact of interest rates;
+- the impact of taxation;
+- the impact of the sequence of returns;
+- the main risks;
+- the assumptions to which the conclusions are the most sensitive.
+
+Do not assess the strategy solely by comparing the market return to the borrowing rate. Assess it according to its **net worth, its opportunity cost, its taxation, its cash flows and the risk assumed**.
+
+Clearly flag any missing data or approximation likely to significantly change the results.`;
+
+    group('levier-seeds.js — round trip to the source prompt');
+    test('the fr analysis seed serializes back to the source section', function () {
+      eq(DeltaText.toText(LevierSeeds.analysis.fr), SEED_ANALYSIS_FR);
+    });
+    test('the en analysis seed serializes back to the source section', function () {
+      eq(DeltaText.toText(LevierSeeds.analysis.en), SEED_ANALYSIS_EN);
+    });
+    test('the fr presentation seed serializes back to the source section', function () {
+      eq(DeltaText.toText(LevierSeeds.presentation.fr), SEED_PRESENTATION_FR);
+    });
+    test('the en presentation seed serializes back to the source section', function () {
+      eq(DeltaText.toText(LevierSeeds.presentation.en), SEED_PRESENTATION_EN);
+    });
+    test('both languages have the same block structure', function () {
+      ['analysis', 'presentation'].forEach(function (part) {
+        const fr = DeltaText.toText(LevierSeeds[part].fr).split('\n\n');
+        const en = DeltaText.toText(LevierSeeds[part].en).split('\n\n');
+        eq(en.length, fr.length, part + ' block count');
+        fr.forEach(function (block, i) {
+          /* Heading level and list-ness must match even though the words differ. */
+          eq(/^#+ /.exec(en[i]) ? RegExp.lastMatch : '', /^#+ /.exec(block) ? RegExp.lastMatch : '',
+             part + ' block ' + (i + 1) + ' heading level');
+        });
+      });
+    });
+
+    group('levier-prompt.js — the whole prompt');
+    test('assembling with the seeds reproduces the source document', function () {
+      const prompt = LevierPrompt.assemble({
+        variables: LevierDefaults.values(),
+        analysis: LevierSeeds.analysis.en,
+        presentation: LevierSeeds.presentation.en
+      }, 'en');
+      eq(prompt.indexOf(SEED_ANALYSIS_EN) > -1, true, 'analysis verbatim');
+      eq(prompt.indexOf(SEED_PRESENTATION_EN) > -1, true, 'presentation verbatim');
+      eq(prompt.indexOf(SEED_ANALYSIS_EN) < prompt.indexOf(SEED_PRESENTATION_EN), true, 'order');
     });
 
     group('contrast.js');
