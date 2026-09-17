@@ -135,7 +135,15 @@
       },
       components: {
         button: { root: { borderRadius: pack.shape.radiusButton, paddingX: '24px', paddingY: '10px',
-                          label: { fontWeight: '500' } } },
+                          label: { fontWeight: '500' } },
+                  /* Aura draws a secondary button's label from {surface.500} in both the outlined
+                     and the text variant, and this preset maps that to #c2c2c2 — 1.78:1 on white,
+                     nowhere near the 4.5:1 AA floor README.md §7 makes absolute. The brand's own
+                     muted text colour is what it should have been: 5.62:1 for BNC, 5.79:1 for
+                     Slate, measured. Token paths verified against @primeuix/themes@3.0.0. Every
+                     secondary button on the site reads through these two lines (design.md §7). */
+                  outlined: { secondary: { color: c.textMuted, borderColor: '{surface.400}' } },
+                  text:     { secondary: { color: c.textMuted } } },
         card:   { root: { borderRadius: pack.shape.radiusCard, shadow: 'var(--shadow-card)' } },
         tag:    { root: { borderRadius: pack.shape.radiusButton } },
         slider: { handle: { background: c.primary } }

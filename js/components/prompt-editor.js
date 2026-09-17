@@ -7,8 +7,15 @@
    measure rather than taste.
 
    The model is the Quill Delta, not the HTML string v-model would give: it is what the prompt is
-   serialized from and what autosave will persist (batch 7). Quill is therefore driven directly —
-   setContents on load, getContents on change — instead of through v-model. */
+   serialized from and what autosave persists. Quill is therefore driven directly — setContents on
+   load, getContents on change — instead of through v-model.
+
+   editorStyle sets a height and nothing else. It is tempting to add overflow-y:auto there, and an
+   earlier version did: the container's scrollHeight reports the full document, which reads like
+   content about to spill. It is not — Quill's own .ql-editor already scrolls inside that height,
+   and the inline rule only adds a SECOND scroll container, so the editor painted two scrollbars
+   side by side. Measured in Chromium: with the rule, both .p-editor-content and .ql-editor paint
+   a 15px bar; without it, only .ql-editor does, and the content still scrolls. */
 
 window.PromptEditor = {
   props: {
@@ -45,7 +52,7 @@ window.PromptEditor = {
   },
 
   template: `
-    <PEditor :aria-label="label" editorStyle="height: 26rem; overflow-y: auto"
+    <PEditor :aria-label="label" editorStyle="height: 26rem"
              @load="onLoad" @text-change="onTextChange">
       <template #toolbar>
         <span class="ql-formats">

@@ -37,6 +37,13 @@
   --brand-radius-card:      8px;
 
   /* ─── Product-owned: identical in every brand ─── */
+
+  /* Monospace is product-owned, like the type scale: it marks text as literal — a prompt to copy,
+     a code block — and that meaning does not change with the brand. System stack only, so it costs
+     no font request (design.md §6). */
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+               monospace;
+
   --surface-0:   #ffffff;
   --surface-50:  #fafafa;
   --surface-100: #efefef;

@@ -35,6 +35,8 @@
   <script src="./brands/bnc.js"></script>          <!-- every pack registers on window.BRANDS -->
   <script src="./brands/slate.js"></script>        <!-- one tag per pack; brand.js picks one -->
   <script src="./js/services/brand.js"></script>   <!-- selects + applies, once, before mount -->
+  <script src="./js/services/clipboard.js"></script>     <!-- copy, with the non-secure fallback -->
+  <script src="./js/services/download.js"></script>      <!-- hand the visitor a text file -->
   <script src="./js/composables/i18n.js"></script>
   <script src="./js/utils/format.js"></script>
   <script src="./js/utils/contrast.js"></script>
@@ -44,6 +46,8 @@
   <script src="./js/utils/levier-prompt.js"></script>    <!-- levier: prompt assembly -->
   <script src="./js/utils/levier-validate.js"></script>  <!-- levier: cross-field checks -->
   <script src="./js/utils/levier-seeds.js"></script>     <!-- levier: editor seed deltas -->
+  <script src="./js/utils/levier-share.js"></script>     <!-- levier: variables <-> URL scenario -->
+  <script src="./js/utils/levier-storage.js"></script>   <!-- levier: saved-state envelope -->
 
   <!-- No bundler and no module loader, so every component, page and util needs its own tag.
        Adding a tool means adding its two tags here. Everything loads up front, on purpose:

@@ -34,6 +34,8 @@
   <script src="./js/utils/levier-prompt.js"></script>
   <script src="./js/utils/levier-validate.js"></script>
   <script src="./js/utils/levier-seeds.js"></script>
+  <script src="./js/utils/levier-share.js"></script>
+  <script src="./js/utils/levier-storage.js"></script>
 
   <!-- Every brand pack, so the contrast cases below cover all of them. -->
   <script src="./brands/bnc.js"></script>
@@ -519,6 +521,17 @@
     test('the token estimate tracks length', function () {
       eq(LevierPrompt.estimateTokens('a'.repeat(350)), 100);
     });
+    test('the download file name is per language, ASCII and .md', function () {
+      eq(LevierPrompt.fileName('fr'), 'prompt-analyse-levier.md');
+      eq(LevierPrompt.fileName('en'), 'leverage-analysis-prompt.md');
+      /* A name that crosses filesystems intact: no accent, no space, no separator. */
+      ['fr', 'en'].forEach(function (lang) {
+        eq(/^[a-z0-9-]+\.md$/.test(LevierPrompt.fileName(lang)), true, lang + ' is portable');
+      });
+    });
+    test('an unknown language falls back to French rather than undefined', function () {
+      eq(LevierPrompt.fileName('de'), 'prompt-analyse-levier.md');
+    });
 
     group('levier-prompt.js — the free-text escape hatch');
     test('choosing "other" emits what was typed, not the word other', function () {
@@ -535,6 +548,214 @@
       const line = LevierPrompt.renderVariables(values, 'en').split('\n')
         .find(function (l) { return l.indexOf('Portfolio type') > -1; });
       eq(line, '- Portfolio type: [other]');
+    });
+
+    group('levier-share.js — the key table is a public interface');
+    test('every field in the model has a share key', function () {
+      const missing = [];
+      LevierShare.eachField(function (section, field, path) {
+        if (!LevierShare.KEYS[path]) missing.push(path);
+      });
+      eq(missing.join(', '), '', 'fields with no key');
+    });
+    test('no two fields share a key', function () {
+      const seen = {}, clashes = [];
+      Object.keys(LevierShare.KEYS).forEach(function (path) {
+        const key = LevierShare.KEYS[path];
+        if (seen[key]) clashes.push(key + ' (' + seen[key] + ' and ' + path + ')');
+        seen[key] = path;
+      });
+      eq(clashes.join(', '), '', 'duplicate keys');
+    });
+    test('no key collides with one the shell owns', function () {
+      /* 'lang' is i18n's and 'brand' is the brand service's; a scenario must never claim either. */
+      const taken = ['lang', 'brand'];
+      const clashes = Object.keys(LevierShare.KEYS)
+        .map(function (path) { return LevierShare.KEYS[path]; })
+        .filter(function (key) { return taken.indexOf(key) > -1; });
+      eq(clashes.join(', '), '');
+    });
+
+    group('levier-share.js — round trip');
+    test('the defaults round-trip unchanged', function () {
+      const values = LevierDefaults.values();
+      const back = LevierShare.fromFlat(LevierShare.toFlat(values));
+      eq(JSON.stringify(back), JSON.stringify(values));
+    });
+    test('the defaults produce an empty query — a clean URL until something changes', function () {
+      const spec = LevierShare.spec();
+      eq(Scenario.encode(spec, LevierShare.toFlat(LevierDefaults.values()), ''), '');
+    });
+    test('a changed field round-trips through an actual query string', function () {
+      const spec = LevierShare.spec();
+      const values = LevierDefaults.values();
+      values.financing.amountBorrowed = 250000;
+      values.financing.horizons = [10, 25];
+      values.investor.province = 'ON';
+      values.monteCarlo.enabled = false;
+
+      const query = Scenario.encode(spec, LevierShare.toFlat(values), '');
+      const back = LevierShare.fromFlat(Scenario.decode(spec, query));
+
+      eq(back.financing.amountBorrowed, 250000);
+      eq(back.financing.horizons.join(','), '10,25');
+      eq(back.investor.province, 'ON');
+      eq(back.monteCarlo.enabled, false);
+      /* Everything the sender did not touch comes back as the default, not as undefined. */
+      eq(back.investment.amountInvested, 100000, 'untouched field');
+    });
+    test('only what changed appears in the query', function () {
+      const spec = LevierShare.spec();
+      const values = LevierDefaults.values();
+      values.investor.province = 'ON';
+      eq(Scenario.encode(spec, LevierShare.toFlat(values), ''), 'prov=ON');
+    });
+
+    group('levier-share.js — Auto fields survive a URL');
+    test('an Auto field encodes as the sentinel and comes back on Auto', function () {
+      const spec = LevierShare.spec();
+      const values = LevierDefaults.values();
+      values.investor.taxRate = { auto: false, value: 41.5 };
+
+      const query = Scenario.encode(spec, LevierShare.toFlat(values), '');
+      eq(query, 'tax=41.5');
+      const back = LevierShare.fromFlat(Scenario.decode(spec, query));
+      eq(back.investor.taxRate.auto, false);
+      eq(back.investor.taxRate.value, 41.5, 'a number again, not the string');
+    });
+    test('a field left on Auto stays out of the query', function () {
+      const spec = LevierShare.spec();
+      eq(Scenario.encode(spec, LevierShare.toFlat(LevierDefaults.values()), '').indexOf('tax='),
+         -1);
+    });
+    test('an Auto field with a choice value keeps its string', function () {
+      const spec = LevierShare.spec();
+      const values = LevierDefaults.values();
+      values.rates.baseline = { auto: true, value: null };
+      const query = Scenario.encode(spec, LevierShare.toFlat(values), '');
+      const back = LevierShare.fromFlat(Scenario.decode(spec, query));
+      eq(back.rates.baseline.auto, true);
+    });
+    test('a hand-mangled Auto value falls back to Auto rather than NaN', function () {
+      const spec = LevierShare.spec();
+      const back = LevierShare.fromFlat(Scenario.decode(spec, 'tax=banana'));
+      eq(back.investor.taxRate.auto, true);
+      eq(back.investor.taxRate.value, null);
+    });
+
+    group('levier-share.js — a hostile URL cannot break the form');
+    test('an unknown option key in a multi-select is dropped', function () {
+      const spec = LevierShare.spec();
+      const back = LevierShare.fromFlat(Scenario.decode(spec, 'acct=tfsa,notAnAccount'));
+      eq(back.investor.accountTypes.join(','), 'tfsa');
+    });
+    test('a multi-select of nothing but junk falls back to the default', function () {
+      const spec = LevierShare.spec();
+      const back = LevierShare.fromFlat(Scenario.decode(spec, 'acct=nope,alsoNope'));
+      eq(back.investor.accountTypes.join(','), 'tfsa,nonRegistered');
+    });
+    test('a non-numeric number falls back rather than becoming NaN', function () {
+      const spec = LevierShare.spec();
+      const back = LevierShare.fromFlat(Scenario.decode(spec, 'amt=lots'));
+      eq(back.financing.amountBorrowed, 100000);
+    });
+    test('an empty query yields exactly the defaults', function () {
+      const spec = LevierShare.spec();
+      eq(JSON.stringify(LevierShare.fromFlat(Scenario.decode(spec, ''))),
+         JSON.stringify(LevierDefaults.values()));
+    });
+
+    group('scenario.js — has()');
+    test('a query with no scenario parameter says so', function () {
+      const spec = LevierShare.spec();
+      eq(Scenario.has(spec, ''), false);
+      eq(Scenario.has(spec, 'lang=en'), false, 'lang alone is not a scenario');
+    });
+    test('one parameter is enough to count as a scenario', function () {
+      eq(Scenario.has(LevierShare.spec(), 'lang=en&prov=ON'), true);
+    });
+
+    group('levier-storage.js — round trip');
+    test('a full state survives serialize then deserialize', function () {
+      const values = LevierDefaults.values();
+      values.financing.amountBorrowed = 175000;
+      const delta = { ops: [{ insert: 'mine\n' }] };
+      const result = LevierStorage.deserialize(LevierStorage.serialize({
+        lang: 'en', variables: values, analysis: delta, presentation: delta,
+        touched: { analysis: true, presentation: false }
+      }));
+      eq(result.ok, true);
+      eq(result.value.lang, 'en');
+      eq(result.value.variables.financing.amountBorrowed, 175000);
+      eq(JSON.stringify(result.value.analysis), JSON.stringify(delta));
+      eq(result.value.touched.analysis, true);
+      eq(result.value.touched.presentation, false);
+    });
+    test('an exported file never carries a key or a response', function () {
+      const text = LevierStorage.serialize({
+        lang: 'fr', variables: LevierDefaults.values(), analysis: null, presentation: null,
+        touched: {}
+      });
+      const keys = Object.keys(JSON.parse(text)).sort().join(',');
+      eq(keys, 'analysis,lang,presentation,savedAt,touched,variables,version');
+    });
+    test('the file name is dated, ASCII and per language', function () {
+      const on = new Date('2026-09-17T12:00:00Z');
+      eq(LevierStorage.fileName('fr', on), 'scenario-levier-2026-09-17.json');
+      eq(LevierStorage.fileName('en', on), 'leverage-scenario-2026-09-17.json');
+    });
+
+    group('levier-storage.js — a bad file is refused, never half-applied');
+    test('text that is not JSON', function () {
+      eq(LevierStorage.deserialize('not json at all').reason, 'notJson');
+    });
+    test('JSON that is not an object', function () {
+      eq(LevierStorage.deserialize('[1,2,3]').reason, 'notJson');
+    });
+    test('a document from another version', function () {
+      eq(LevierStorage.deserialize('{"version":99,"variables":{}}').reason, 'version');
+    });
+    test('a document with no variables', function () {
+      eq(LevierStorage.deserialize('{"version":1}').reason, 'shape');
+    });
+    test('prose that is not a Delta is dropped, not handed to Quill', function () {
+      const result = LevierStorage.deserialize(JSON.stringify({
+        version: 1, variables: {}, analysis: 'just a string', presentation: { nope: true }
+      }));
+      eq(result.ok, true);
+      eq(result.value.analysis, null);
+      eq(result.value.presentation, null);
+    });
+
+    group('levier-storage.js — merging tolerates a partial or edited file');
+    test('an unknown group is ignored and the rest still lands', function () {
+      const merged = LevierStorage.mergeVariables({
+        financing: { amountBorrowed: 42 }, notAGroup: { x: 1 }
+      });
+      eq(merged.financing.amountBorrowed, 42);
+      eq(merged.investor.taxableIncome, 140000, 'untouched default');
+    });
+    test('a missing field keeps its default', function () {
+      eq(LevierStorage.mergeVariables({ financing: {} }).financing.initialRate, 3.9);
+    });
+    test('an Auto field given a bare number is refused, not silently un-Autoed', function () {
+      const merged = LevierStorage.mergeVariables({ investor: { taxRate: 41 } });
+      eq(merged.investor.taxRate.auto, true, 'still the default Auto pair');
+    });
+    test('an Auto field given a proper pair is taken', function () {
+      const merged = LevierStorage.mergeVariables({
+        investor: { taxRate: { auto: false, value: 41 } }
+      });
+      eq(merged.investor.taxRate.auto, false);
+      eq(merged.investor.taxRate.value, 41);
+    });
+    test('a scalar where a list belongs is refused', function () {
+      eq(LevierStorage.mergeVariables({ financing: { horizons: 10 } }).financing.horizons.join(','),
+         '5,10,15,20');
+    });
+    test('null never overwrites a default', function () {
+      eq(LevierStorage.mergeVariables({ financing: { amountBorrowed: null } })
+         .financing.amountBorrowed, 100000);
     });
 
     group('levier-validate.js');

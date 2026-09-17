@@ -124,11 +124,22 @@
     return Math.ceil((text || '').length / 3.5);
   }
 
+  /* The name the downloaded .md lands under (tool plan §7). ASCII and hyphenated on purpose: it
+     crosses filesystems, and an accented name is exactly the sort of thing that arrives mangled.
+     No date — the name has to be predictable enough to overwrite deliberately, and a clock would
+     make this untestable for the sake of a detail the visitor can type themselves. */
+  const FILE_NAME = { fr: 'prompt-analyse-levier.md', en: 'leverage-analysis-prompt.md' };
+
+  function fileName(lang) {
+    return FILE_NAME[lang] || FILE_NAME.fr;
+  }
+
   window.LevierPrompt = {
     renderVariables: renderVariables,
     variableLines: variableLines,
     renderValue: renderValue,
     assemble: assemble,
-    estimateTokens: estimateTokens
+    estimateTokens: estimateTokens,
+    fileName: fileName
   };
 })();

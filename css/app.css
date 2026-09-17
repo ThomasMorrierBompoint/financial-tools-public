@@ -217,11 +217,88 @@
 
 .tool-split { display: grid; gap: var(--space-4); }
 
+/* The prompt is literal text destined for someone else's text box, not prose to read here, and
+   monospace is what says so (tool plan §7). 13px because the assembled prompt is wide and the
+   column is not. */
+.tool-output textarea {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+}
+
 @media (min-width: 1200px) {
   .tool-split { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
   .tool-output { position: sticky; top: var(--space-2); }
   /* Fill the viewport rather than the rows attribute, so the prompt is as tall as the screen allows. */
   .tool-output textarea { height: calc(100vh - 16rem); min-height: 320px; }
+}
+
+/* ─── Tool action bar (tool plan §3.2) ─────────────────────────────────────────────────────────
+
+   Sticky to the bottom of the viewport: the variables form is several screens long, and the
+   action the visitor came for should never be a scroll away. It is a bar rather than a floating
+   button so the secondary actions sit beside the primary one at the same weight the design asks
+   for, and so nothing overlaps the content it is acting on. */
+
+.tool-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+  padding-block: var(--space-3);
+  background: var(--surface-0);
+  border-top: 1px solid var(--border);
+}
+
+.tool-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* The note rides inside the sticky bar so it is on screen whenever the share button is. It is
+   the one place the tool says what a shared link does NOT carry, which is the difference between
+   sending a colleague your scenario and sending them your numbers with someone else's prose. */
+.tool-actions-note { margin: 0; }
+
+/* What you do with the prompt sits on the left; what you do with the whole scenario — export,
+   import, reset — is pushed to the right, so the destructive one is nowhere near the one people
+   click every time. */
+.tool-actions-gap { flex: 1 1 auto; }
+
+/* At the 1024px floor there is no room to hold the two groups apart: the spacer only pushes the
+   last button onto a row of its own. Drop it and let all six flow and wrap together. */
+@media (max-width: 1199px) {
+  .tool-actions-gap { display: none; }
+}
+
+/* Short viewports are the 768px-tall floor of the supported range; a sticky bar there eats a
+   tenth of the screen for no gain, so it goes back to sitting where it falls. */
+@media (max-height: 820px) {
+  .tool-actions { position: static; }
+}
+
+/* Reachable by a screen reader and by the label's click target, invisible to everyone else. Not
+   display:none and not hidden, either of which would take it out of the accessibility tree —
+   which is the whole point of the element (design.md §13). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media print {
+  .tool-actions { display: none; }
 }
 
 /* ─── Responsive: 1024–1199px keeps the layout, drops a column (design.md §12) ───────────────── */

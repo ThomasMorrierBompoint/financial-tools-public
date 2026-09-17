@@ -118,9 +118,9 @@
       'home.soonBlurb': 'Le premier outil arrive : un générateur de prompt d’analyse de levier ' +
                         'financier.',
 
-      'levier.buildingNote': 'Cet outil est en construction : les deux éditeurs de texte et la ' +
-                             'copie du prompt arrivent. Les variables sont déjà ' +
-                             'modifiables et le prompt se met à jour au fur et à mesure.',
+      'levier.buildingNote': 'Le prompt est complet, prêt à copier, et vos réponses sont ' +
+                             'conservées d’une visite à l’autre. À venir : l’envoi direct au ' +
+                             'modèle de votre choix.',
       'levier.variablesHeading': 'Variables',
       'levier.analysisHeading': 'Analyse',
       'levier.presentationHeading': 'Présentation',
@@ -153,6 +153,43 @@
       'levier.previewNote': 'Le prompt est dérivé des variables, jamais stocké. Il reproduit la ' +
                             'structure du prompt source, section par section.',
       'levier.counts': '{characters} caractères · environ {tokens} jetons (estimation)',
+
+      'levier.copy': 'Copier le prompt',
+      'levier.copied': 'Prompt copié',
+      'levier.copiedDetail': 'Collez-le dans le modèle de votre choix.',
+      'levier.copyFailed': 'La copie a échoué',
+      'levier.copyFailedDetail': 'Sélectionnez le texte de l’aperçu et copiez-le à la main.',
+      'levier.download': 'Télécharger .md',
+      'levier.downloaded': 'Téléchargement lancé',
+      'levier.downloadedDetail': 'Le prompt est enregistré sur votre appareil, nulle part ' +
+                                 'ailleurs.',
+
+      'levier.export': 'Exporter .json',
+      'levier.exported': 'Scénario exporté',
+      'levier.exportedDetail': 'Le fichier contient vos variables et vos textes — ni clé, ni ' +
+                               'réponse de modèle.',
+      'levier.import': 'Importer .json',
+      'levier.imported': 'Scénario importé',
+      'levier.importedDetail': 'Le formulaire et les textes ont été remplacés.',
+      'levier.importFailed': 'Import impossible',
+      'levier.importFailed.notJson': 'Ce fichier n’est pas du JSON valide. Choisissez un fichier ' +
+                                     'exporté depuis cet outil.',
+      'levier.importFailed.version': 'Ce fichier vient d’une version différente de l’outil et ne ' +
+                                     'peut pas être relu.',
+      'levier.importFailed.shape': 'Ce fichier est du JSON, mais ce n’est pas un scénario de cet ' +
+                                   'outil : il n’a pas de section « variables ».',
+      'levier.importFailed.unreadable': 'Le fichier n’a pas pu être lu. Réessayez.',
+      'levier.reset': 'Réinitialiser',
+      'levier.resetConfirm': 'Tout réinitialiser',
+      'levier.cancel': 'Annuler',
+      'levier.resetWarning': 'Toutes les variables reviendront à leurs valeurs par défaut et les ' +
+                             'deux textes repartiront du prompt source. Ce que vous avez écrit ' +
+                             'sera perdu. Exportez d’abord si vous voulez le garder.',
+      'levier.resetDone': 'Outil réinitialisé',
+      'levier.resetDoneDetail': 'Les valeurs par défaut sont revenues.',
+      'levier.savedNote': 'Vos réponses restent sur cet appareil, dans ce navigateur — rien ' +
+                          'n’est envoyé nulle part. Le lien partagé transmet vos variables, ' +
+                          'jamais vos textes : exportez le .json pour les inclure.',
 
       'footer.site': 'Le site',
       'footer.about': 'À propos',
@@ -193,9 +230,9 @@
       'home.soonBlurb': 'The first tool is on its way: a financial leverage analysis prompt ' +
                         'generator.',
 
-      'levier.buildingNote': 'This tool is being built: the two rich-text editors and the copy ' +
-                             'action are on their way. The variables are already editable ' +
-                             'and the prompt updates as you go.',
+      'levier.buildingNote': 'The prompt is complete, ready to copy, and your answers are kept ' +
+                             'between visits. Still to come: sending it straight to the model of ' +
+                             'your choice.',
       'levier.variablesHeading': 'Variables',
       'levier.analysisHeading': 'Analysis',
       'levier.presentationHeading': 'Presentation',
@@ -228,6 +265,42 @@
       'levier.previewNote': 'The prompt is derived from the variables, never stored. It ' +
                             'reproduces the structure of the source prompt, section by section.',
       'levier.counts': '{characters} characters · about {tokens} tokens (estimate)',
+
+      'levier.copy': 'Copy the prompt',
+      'levier.copied': 'Prompt copied',
+      'levier.copiedDetail': 'Paste it into the model of your choice.',
+      'levier.copyFailed': 'Copying failed',
+      'levier.copyFailedDetail': 'Select the preview text and copy it by hand.',
+      'levier.download': 'Download .md',
+      'levier.downloaded': 'Download started',
+      'levier.downloadedDetail': 'The prompt is saved on your device, nowhere else.',
+
+      'levier.export': 'Export .json',
+      'levier.exported': 'Scenario exported',
+      'levier.exportedDetail': 'The file holds your variables and your prose — no key, no model ' +
+                               'response.',
+      'levier.import': 'Import .json',
+      'levier.imported': 'Scenario imported',
+      'levier.importedDetail': 'The form and the prose have been replaced.',
+      'levier.importFailed': 'Import failed',
+      'levier.importFailed.notJson': 'That file is not valid JSON. Choose a file exported from ' +
+                                     'this tool.',
+      'levier.importFailed.version': 'That file comes from a different version of the tool and ' +
+                                     'cannot be read back.',
+      'levier.importFailed.shape': 'That file is JSON, but it is not a scenario from this tool: ' +
+                                   'it has no "variables" section.',
+      'levier.importFailed.unreadable': 'The file could not be read. Try again.',
+      'levier.reset': 'Reset',
+      'levier.resetConfirm': 'Reset everything',
+      'levier.cancel': 'Cancel',
+      'levier.resetWarning': 'Every variable goes back to its default and both prose sections ' +
+                             'start again from the source prompt. Anything you have written will ' +
+                             'be lost. Export first if you want to keep it.',
+      'levier.resetDone': 'Tool reset',
+      'levier.resetDoneDetail': 'The defaults are back.',
+      'levier.savedNote': 'Your answers stay on this device, in this browser — nothing is sent ' +
+                          'anywhere. A shared link carries your variables, never your prose: ' +
+                          'export the .json to include it.',
 
       'footer.site': 'The site',
       'footer.about': 'About',

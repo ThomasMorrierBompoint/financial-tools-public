@@ -55,6 +55,17 @@
           .filter(function (value) { return isFinite(value); });
         return values.length ? values : spec.default;
       }
+      case 'strings': {
+        /* The multi-select counterpart of 'numbers': stored keys, never labels, so the list is
+           language-independent and a link shared from French opens correctly in English. An
+           `allowed` list makes an unknown key fall back rather than reach a component that
+           cannot render it. */
+        const values = String(raw).split(',')
+          .map(function (part) { return part.trim(); })
+          .filter(function (part) { return part !== ''; })
+          .filter(function (part) { return !spec.allowed || spec.allowed.indexOf(part) > -1; });
+        return values.length ? values : spec.default;
+      }
       default:
         return String(raw);
     }
@@ -64,7 +75,8 @@
     if (value === null || value === undefined) return null;
     switch (spec.type) {
       case 'boolean':  return value ? '1' : '0';
-      case 'numbers':  return Array.isArray(value) ? value.join(',') : String(value);
+      case 'numbers':
+      case 'strings':  return Array.isArray(value) ? value.join(',') : String(value);
       default:         return String(value);
     }
   }
@@ -103,36 +115,69 @@
     return params.toString();
   }
 
+  /* Does this query carry a scenario at all? A tool that also restores from localStorage needs
+     the answer: a link that names even one parameter is an explicit instruction and must win
+     whole, rather than blending the sender's values with the recipient's saved ones. */
+  function has(spec, search) {
+    const params = search instanceof URLSearchParams ? search : new URLSearchParams(search || '');
+    return Object.keys(spec).some(function (key) {
+      return RESERVED.indexOf(key) < 0 && params.get(key) !== null;
+    });
+  }
+
   /* ─── Binding ────────────────────────────────────────────────────────────────────────────── */
 
-  function use(spec) {
-    const state = Vue.reactive(decode(spec, queryParams()));
-    const keys = Object.keys(spec);
+  /* bind() is for a tool whose state is not a flat object of its own — nested groups, or fields
+     that are a value-or-instruction pair. It never owns the state: the tool supplies read() for a
+     flat snapshot and write(flat) to apply one, and keeps its own shape.
+
+     Returns { fromUrl, present, push, schedule }: what the URL says, whether it said anything,
+     and the two ways to send state back to it. */
+  function bind(spec, adapter) {
     let timer = null;
 
-    function write() {
-      const query = encode(spec, state, queryParams());
+    function push() {
+      const query = encode(spec, adapter.read(), queryParams());
       history.replaceState(null, '', location.pathname + location.search +
         route() + (query ? '?' + query : ''));
     }
 
-    Vue.watch(function () {
-      return keys.map(function (key) { return state[key]; });
-    }, function () {
+    function schedule() {
       clearTimeout(timer);
-      timer = setTimeout(write, WRITE_DELAY);
-    }, { deep: true });
+      timer = setTimeout(push, WRITE_DELAY);
+    }
 
     /* replaceState does not fire hashchange, so anything arriving here is external: a pasted link,
        the back button, or the language toggle rewriting the slug. Refill from the URL. */
-    function readBack() {
-      const incoming = decode(spec, queryParams());
-      keys.forEach(function (key) {
-        if (!same(state[key], incoming[key])) state[key] = incoming[key];
-      });
-    }
+    window.addEventListener('hashchange', function () {
+      adapter.write(decode(spec, queryParams()));
+    });
 
-    window.addEventListener('hashchange', readBack);
+    return {
+      fromUrl: decode(spec, queryParams()),
+      present: has(spec, queryParams()),
+      push: push,
+      schedule: schedule
+    };
+  }
+
+  /* The flat case, which is most tools: bind() against a reactive object this makes and owns. */
+  function use(spec) {
+    const keys = Object.keys(spec);
+    const state = Vue.reactive(decode(spec, queryParams()));
+
+    const bound = bind(spec, {
+      read: function () { return state; },
+      write: function (incoming) {
+        keys.forEach(function (key) {
+          if (!same(state[key], incoming[key])) state[key] = incoming[key];
+        });
+      }
+    });
+
+    Vue.watch(function () {
+      return keys.map(function (key) { return state[key]; });
+    }, bound.schedule, { deep: true });
 
     return state;
   }
@@ -143,6 +188,8 @@
     encode: encode,
     decodeValue: decodeValue,
     encodeValue: encodeValue,
+    has: has,
+    bind: bind,
     use: use
   };
 })();

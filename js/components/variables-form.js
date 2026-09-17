@@ -84,6 +84,19 @@ window.VariablesForm = {
         return i18n.lang.value === 'fr' ? ' %' : '%';
       }),
       fieldId: function (section, field) { return 'levier-' + section.key + '-' + field.key; },
+      /* Every hint rendered under a control, as one aria-describedby. It is computed rather than
+         written per control because the alternative is remembering to add it each time, and that
+         is exactly what went wrong: only the two numeric controls carried the Auto hint, so the
+         one Auto field that happens to be a PSelect announced its state by greying alone — which
+         design.md §13 rules out. Returning null rather than '' keeps the attribute off entirely
+         when there is nothing to point at. */
+      describedBy: function (section, field) {
+        const id = 'levier-' + section.key + '-' + field.key;
+        const hints = [];
+        if (field.auto) hints.push(id + '-auto-hint');
+        if (field.control === 'chips') hints.push(id + '-chips-hint');
+        return hints.length ? hints.join(' ') : null;
+      },
       noticeFor: function (section, field) {
         return props.notices.find(function (notice) {
           return notice.section === section.key && notice.field === field.key;
@@ -116,7 +129,7 @@ window.VariablesForm = {
                             :minFractionDigits="0" :maxFractionDigits="2"
                             :disabled="isAuto(section, field)"
                             :invalid="!!noticeFor(section, field)"
-                            :aria-describedby="field.auto ? fieldId(section, field) + '-auto-hint' : null"
+                            :aria-describedby="describedBy(section, field)"
                             fluid />
 
               <PInputNumber v-else-if="field.control === 'percent'"
@@ -128,7 +141,7 @@ window.VariablesForm = {
                             :minFractionDigits="0" :maxFractionDigits="2"
                             :disabled="isAuto(section, field)"
                             :invalid="!!noticeFor(section, field)"
-                            :aria-describedby="field.auto ? fieldId(section, field) + '-auto-hint' : null"
+                            :aria-describedby="describedBy(section, field)"
                             fluid />
 
               <PInputNumber v-else-if="field.control === 'number'"
@@ -138,6 +151,7 @@ window.VariablesForm = {
                             :locale="locale"
                             :min="field.min" :max="field.max" :step="field.step || 1"
                             :disabled="isAuto(section, field)"
+                            :aria-describedby="describedBy(section, field)"
                             fluid />
 
               <div v-else-if="field.control === 'sliderNumber'" class="field-slider">
@@ -145,6 +159,7 @@ window.VariablesForm = {
                               @update:model-value="write(section, field, $event)"
                               :inputId="fieldId(section, field)"
                               :locale="locale" :min="field.min" :max="field.max"
+                              :aria-describedby="describedBy(section, field)"
                               :suffix="' ' + t('levier.years')" />
                 <PSlider :model-value="read(section, field)"
                          @update:model-value="write(section, field, $event)"
@@ -159,6 +174,7 @@ window.VariablesForm = {
                        :options="localized(field)" optionLabel="label" optionValue="value"
                        :disabled="isAuto(section, field)"
                        :invalid="!!noticeFor(section, field)"
+                       :aria-describedby="describedBy(section, field)"
                        fluid />
 
               <PSelectButton v-else-if="field.control === 'selectButton'"
@@ -166,6 +182,7 @@ window.VariablesForm = {
                              @update:model-value="write(section, field, $event)"
                              :options="localized(field)"
                              optionLabel="label" optionValue="value"
+                             :aria-describedby="describedBy(section, field)"
                              :aria-label="field.label[lang]" />
 
               <PMultiSelect v-else-if="field.control === 'multiSelect'"
@@ -175,6 +192,7 @@ window.VariablesForm = {
                             :options="localized(field)"
                             optionLabel="label" optionValue="value"
                             display="chip" :showToggleAll="false"
+                            :aria-describedby="describedBy(section, field)"
                             :aria-label="field.label[lang]"
                             fluid />
 
@@ -182,6 +200,7 @@ window.VariablesForm = {
                              :model-value="read(section, field)"
                              @update:model-value="write(section, field, $event)"
                              :inputId="fieldId(section, field)"
+                             :aria-describedby="describedBy(section, field)"
                              :aria-label="field.label[lang]" />
 
               <PAutoComplete v-else-if="field.control === 'chips'"
@@ -189,7 +208,7 @@ window.VariablesForm = {
                              @update:model-value="writeChips(section, field, $event)"
                              :inputId="fieldId(section, field)"
                              multiple :typeahead="false" @complete="noSuggestions"
-                             :aria-describedby="fieldId(section, field) + '-chips-hint'"
+                             :aria-describedby="describedBy(section, field)"
                              fluid />
 
               <p v-if="field.control === 'chips'" class="field-help"
