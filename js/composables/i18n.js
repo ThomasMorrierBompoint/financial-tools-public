@@ -118,9 +118,25 @@
       'home.soonBlurb': 'Le premier outil arrive : un générateur de prompt d’analyse de levier ' +
                         'financier.',
 
-      'levier.buildingNote': 'Cet outil est en construction : le formulaire des variables et ' +
-                             'les deux éditeurs arrivent. L’aperçu ci-dessous est généré à ' +
-                             'partir des valeurs par défaut.',
+      'levier.buildingNote': 'Cet outil est en construction : les deux éditeurs de texte et la ' +
+                             'copie du prompt arrivent. Les variables sont déjà ' +
+                             'modifiables et le prompt se met à jour au fur et à mesure.',
+      'levier.variablesHeading': 'Variables',
+      'levier.auto': 'Auto',
+      'levier.autoOn': 'Auto — le modèle déterminera cette valeur : « {instruction} ».',
+      'levier.autoOff': 'Cochez Auto pour laisser le modèle déterminer cette valeur.',
+      'levier.years': 'ans',
+      'levier.chipsHint': 'Tapez une valeur puis Entrée pour l’ajouter.',
+      'levier.otherPlaceholder': 'Précisez',
+      'levier.warn.investedDiffersFromBorrowed':
+        'Le montant investi diffère du montant emprunté. C’est possible, mais le prompt le ' +
+        'présentera comme voulu — vérifiez les deux champs.',
+      'levier.warn.taxRateAutoWithoutProvince':
+        'Le taux d’imposition est sur Auto, mais aucune province n’est choisie. Choisissez une ' +
+        'province pour que le modèle puisse le calculer.',
+      'levier.warn.horizonBeyondAmortization':
+        'Un horizon ({horizons} ans) dépasse l’amortissement de {amortization} ans : à cette ' +
+        'date la dette est déjà remboursée. Réduisez l’horizon ou allongez l’amortissement.',
       'levier.previewHeading': 'Aperçu du prompt',
       'levier.previewNote': 'Le prompt est dérivé des variables, jamais stocké. Il reproduit la ' +
                             'structure du prompt source, section par section.',
@@ -165,9 +181,25 @@
       'home.soonBlurb': 'The first tool is on its way: a financial leverage analysis prompt ' +
                         'generator.',
 
-      'levier.buildingNote': 'This tool is being built: the variables form and the two editors ' +
-                             'are on their way. The preview below is generated from the default ' +
-                             'values.',
+      'levier.buildingNote': 'This tool is being built: the two rich-text editors and the copy ' +
+                             'action are on their way. The variables are already editable ' +
+                             'and the prompt updates as you go.',
+      'levier.variablesHeading': 'Variables',
+      'levier.auto': 'Auto',
+      'levier.autoOn': 'Auto — the model will determine this value: “{instruction}”.',
+      'levier.autoOff': 'Check Auto to let the model determine this value.',
+      'levier.years': 'years',
+      'levier.chipsHint': 'Type a value, then press Enter to add it.',
+      'levier.otherPlaceholder': 'Specify',
+      'levier.warn.investedDiffersFromBorrowed':
+        'The amount invested differs from the amount borrowed. That can be deliberate, but the ' +
+        'prompt will present it as such — check both fields.',
+      'levier.warn.taxRateAutoWithoutProvince':
+        'The tax rate is on Auto but no province is selected. Choose a province so the model ' +
+        'can work it out.',
+      'levier.warn.horizonBeyondAmortization':
+        'A horizon ({horizons} years) runs past the {amortization}-year amortization: by then ' +
+        'the debt is repaid. Shorten the horizon or lengthen the amortization.',
       'levier.previewHeading': 'Prompt preview',
       'levier.previewNote': 'The prompt is derived from the variables, never stored. It ' +
                             'reproduces the structure of the source prompt, section by section.',

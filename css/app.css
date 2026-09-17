@@ -172,6 +172,58 @@
 
 .legal-line i { font-size: 1rem; }
 
+/* ─── Forms (design.md §11 "Form fields", §12 spacing) ──────────────────────────────────────────
+
+   Label above at 16px medium, control, help below at 14px muted. The grid is two columns at the
+   1024px floor; a control that holds chips or a slider spans both rather than being squeezed. */
+
+/* auto-fit rather than a fixed pair: the same form sits full-width when the layout is stacked and
+   in a ~700px column when the preview is beside it, and picks its own column count either way. */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3);
+}
+
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+.field-wide { grid-column: 1 / -1; }
+
+.field > label {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--brand-heading);
+}
+
+.field-help {
+  margin: 0;
+  font-size: 14px;
+  color: var(--brand-text-muted);
+}
+
+/* The Auto checkbox sits under its control, not beside it: at 1024px a control plus a checkbox on
+   one line pushes the currency field below a comfortable width. */
+.field-auto { display: flex; align-items: center; gap: var(--space-1); }
+.field-auto label { font-size: 14px; color: var(--brand-text-muted); }
+
+/* Slider under the typed value, both bound to the same model — exploration and precision
+   (design.md §9). */
+.field-slider { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* ─── Tool split: the inputs beside their live output (design.md §9 "live recompute", §12) ─────
+
+   Below 1200px the two stack, which is what design.md §12 asks for at the 1024px floor: the form
+   is unusable squeezed into half of it. Above, the output sticks so it stays in view while the
+   form scrolls — the whole point is watching the prompt change as a variable changes. */
+
+.tool-split { display: grid; gap: var(--space-4); }
+
+@media (min-width: 1200px) {
+  .tool-split { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+  .tool-output { position: sticky; top: var(--space-2); }
+  /* Fill the viewport rather than the rows attribute, so the prompt is as tall as the screen allows. */
+  .tool-output textarea { height: calc(100vh - 16rem); min-height: 320px; }
+}
+
 /* ─── Responsive: 1024–1199px keeps the layout, drops a column (design.md §12) ───────────────── */
 
 @media (max-width: 1199px) {

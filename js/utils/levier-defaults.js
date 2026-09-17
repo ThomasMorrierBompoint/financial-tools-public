@@ -92,23 +92,23 @@
       key: 'financing',
       heading: { fr: 'Financement', en: 'Financing' },
       fields: [
-        { key: 'amountBorrowed', kind: 'money', decimals: 0,
+        { key: 'amountBorrowed', control: 'currency', min: 0, max: 10000000, kind: 'money', decimals: 0,
           label: { fr: 'Montant emprunté', en: 'Amount borrowed' } },
-        { key: 'financingType', kind: 'choice', options: 'financingType',
+        { key: 'financingType', control: 'select', kind: 'choice', options: 'financingType',
           label: { fr: 'Type de financement', en: 'Type of financing' } },
-        { key: 'initialRate', kind: 'rate', decimals: 1,
+        { key: 'initialRate', control: 'percent', min: 0, max: 30, step: 0.1, kind: 'rate', decimals: 1,
           label: { fr: 'Taux initial', en: 'Initial rate' } },
-        { key: 'rateType', kind: 'choice', options: 'rateType',
+        { key: 'rateType', control: 'selectButton', kind: 'choice', options: 'rateType',
           label: { fr: 'Type de taux', en: 'Rate type' } },
-        { key: 'amortization', kind: 'years',
+        { key: 'amortization', control: 'sliderNumber', min: 1, max: 40, kind: 'years',
           label: { fr: 'Amortissement', en: 'Amortization' } },
-        { key: 'paymentFrequency', kind: 'choice', options: 'paymentFrequency',
+        { key: 'paymentFrequency', control: 'select', kind: 'choice', options: 'paymentFrequency',
           label: { fr: 'Fréquence des paiements', en: 'Payment frequency' } },
-        { key: 'horizons', kind: 'yearList',
+        { key: 'horizons', control: 'chips', kind: 'yearList',
           label: { fr: 'Horizons analysés', en: 'Horizons analyzed' } },
-        { key: 'financingFees', kind: 'money', decimals: 0,
+        { key: 'financingFees', control: 'currency', min: 0, max: 100000, kind: 'money', decimals: 0,
           label: { fr: 'Frais de financement', en: 'Financing fees' } },
-        { key: 'deductibleInterest', kind: 'choice', options: 'deductibleInterest',
+        { key: 'deductibleInterest', control: 'select', kind: 'choice', options: 'deductibleInterest',
           label: { fr: 'Intérêts fiscalement déductibles', en: 'Tax-deductible interest' } }
       ]
     },
@@ -116,13 +116,13 @@
       key: 'investor',
       heading: { fr: 'Investisseur et fiscalité', en: 'Investor and taxation' },
       fields: [
-        { key: 'taxableIncome', kind: 'money', decimals: 0,
+        { key: 'taxableIncome', control: 'currency', min: 0, max: 10000000, kind: 'money', decimals: 0,
           label: { fr: 'Revenu annuel imposable', en: 'Annual taxable income' } },
-        { key: 'province', kind: 'choice', options: 'province',
+        { key: 'province', control: 'select', kind: 'choice', options: 'province',
           label: { fr: 'Province de résidence fiscale', en: 'Province of tax residence' } },
-        { key: 'accountTypes', kind: 'choiceList', options: 'accountTypes',
+        { key: 'accountTypes', control: 'multiSelect', kind: 'choiceList', options: 'accountTypes',
           label: { fr: 'Types de comptes à comparer', en: 'Account types to compare' } },
-        { key: 'taxRate', kind: 'rate', decimals: 2, auto: AUTO.taxRate,
+        { key: 'taxRate', control: 'percent', min: 0, max: 100, kind: 'rate', decimals: 2, auto: AUTO.taxRate,
           label: { fr: 'Taux d’imposition', en: 'Tax rate' } }
       ]
     },
@@ -130,17 +130,17 @@
       key: 'investment',
       heading: { fr: 'Investissement', en: 'Investment' },
       fields: [
-        { key: 'amountInvested', kind: 'money', decimals: 0,
+        { key: 'amountInvested', control: 'currency', min: 0, max: 10000000, kind: 'money', decimals: 0,
           label: { fr: 'Montant initial investi', en: 'Initial amount invested' } },
-        { key: 'portfolioType', kind: 'choice', options: 'portfolioType',
+        { key: 'portfolioType', control: 'select', other: 'portfolioOther', kind: 'choice', options: 'portfolioType',
           label: { fr: 'Type de portefeuille', en: 'Portfolio type' } },
-        { key: 'returnsToTest', kind: 'rateList', decimals: 0,
+        { key: 'returnsToTest', control: 'chips', kind: 'rateList', decimals: 0,
           label: { fr: 'Rendements annuels à tester', en: 'Annual returns to test' } },
-        { key: 'managementFees', kind: 'rate', decimals: 2,
+        { key: 'managementFees', control: 'percent', min: 0, max: 10, step: 0.05, kind: 'rate', decimals: 2,
           label: { fr: 'Frais de gestion annuels', en: 'Annual management fees' } },
-        { key: 'inflation', kind: 'rate', decimals: 0,
+        { key: 'inflation', control: 'percent', min: 0, max: 20, step: 0.1, kind: 'rate', decimals: 0,
           label: { fr: 'Inflation annuelle', en: 'Annual inflation' } },
-        { key: 'additionalContributions', kind: 'money', decimals: 0,
+        { key: 'additionalContributions', control: 'currency', min: 0, max: 1000000, kind: 'money', decimals: 0,
           label: { fr: 'Contributions supplémentaires', en: 'Additional contributions' } }
       ]
     },
@@ -148,14 +148,14 @@
       key: 'scenarios',
       heading: { fr: 'Scénarios de marché', en: 'Market scenarios' },
       fields: [
-        { key: 'marketCorrection', kind: 'rate', decimals: 0,
+        { key: 'marketCorrection', control: 'percent', min: -100, max: 0, step: 1, kind: 'rate', decimals: 0,
           label: { fr: 'Correction boursière', en: 'Market correction' } },
         /* The source renders this one as a phrase — "début, milieu et fin de l’horizon" — not as a
            comma list, so it joins with Intl.ListFormat and carries a suffix. */
-        { key: 'crashTiming', kind: 'choicePhrase', options: 'crashTiming',
+        { key: 'crashTiming', control: 'multiSelect', kind: 'choicePhrase', options: 'crashTiming',
           suffix: { fr: ' de l’horizon', en: ' of the horizon' },
           label: { fr: 'Moment du krach', en: 'Timing of the crash' } },
-        { key: 'returnAfterCrash', kind: 'rate', decimals: 0, auto: AUTO.returnAfterCrash,
+        { key: 'returnAfterCrash', control: 'percent', min: -100, max: 100, kind: 'rate', decimals: 0, auto: AUTO.returnAfterCrash,
           label: { fr: 'Rendement après le krach', en: 'Return after the crash' } }
       ]
     },
@@ -165,11 +165,11 @@
       /* The only section with a lead-in line, and its bullets are lowercase in both files. */
       intro: { fr: 'Analyser :', en: 'Analyze:' },
       fields: [
-        { key: 'baseline', kind: 'choice', options: 'rateScenario', auto: AUTO.toBeDetermined,
+        { key: 'baseline', control: 'select', kind: 'choice', options: 'rateScenario', auto: AUTO.toBeDetermined,
           label: { fr: 'scénario de référence', en: 'baseline scenario' } },
-        { key: 'favourable', kind: 'rate', decimals: 2, auto: AUTO.toBeDetermined,
+        { key: 'favourable', control: 'percent', min: -20, max: 30, step: 0.1, kind: 'rate', decimals: 2, auto: AUTO.toBeDetermined,
           label: { fr: 'scénario favorable', en: 'favorable scenario' } },
-        { key: 'unfavourable', kind: 'rate', decimals: 2, auto: AUTO.toBeDetermined,
+        { key: 'unfavourable', control: 'percent', min: -20, max: 30, step: 0.1, kind: 'rate', decimals: 2, auto: AUTO.toBeDetermined,
           label: { fr: 'scénario défavorable', en: 'unfavorable scenario' } }
       ]
     },
@@ -177,15 +177,15 @@
       key: 'monteCarlo',
       heading: { fr: 'Simulation probabiliste', en: 'Probabilistic simulation' },
       fields: [
-        { key: 'enabled', kind: 'boolean',
+        { key: 'enabled', control: 'toggle', kind: 'boolean',
           label: { fr: 'Simulation Monte-Carlo', en: 'Monte Carlo simulation' } },
-        { key: 'simulations', kind: 'count',
+        { key: 'simulations', control: 'number', min: 100, max: 100000, step: 100, kind: 'count',
           label: { fr: 'Nombre de simulations', en: 'Number of simulations' } },
-        { key: 'averageReturn', kind: 'rate', decimals: 2, auto: AUTO.byPortfolio,
+        { key: 'averageReturn', control: 'percent', min: -20, max: 40, step: 0.1, kind: 'rate', decimals: 2, auto: AUTO.byPortfolio,
           label: { fr: 'Rendement moyen', en: 'Average return' } },
-        { key: 'volatility', kind: 'rate', decimals: 2, auto: AUTO.byPortfolio,
+        { key: 'volatility', control: 'percent', min: 0, max: 100, step: 0.1, kind: 'rate', decimals: 2, auto: AUTO.byPortfolio,
           label: { fr: 'Volatilité annuelle', en: 'Annual volatility' } },
-        { key: 'percentiles', kind: 'literalList',
+        { key: 'percentiles', control: 'chips', kind: 'literalList',
           label: { fr: 'Percentiles', en: 'Percentiles' } }
       ]
     }
@@ -243,6 +243,7 @@
       investment: {
         amountInvested: 100000,
         portfolioType: 'diversifiedEtf',
+        portfolioOther: '',
         returnsToTest: [2, 4, 6, 8, 10],
         managementFees: 0.20,
         inflation: 2,

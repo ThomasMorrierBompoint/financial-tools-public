@@ -29,7 +29,7 @@
 
   /* One field's bracketed value — the instruction verbatim when it is on Auto, otherwise the
      formatted value. A field whose state is { auto: … } stores its value under .value. */
-  function renderValue(field, stored, lang) {
+  function renderValue(field, stored, lang, group) {
     if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
       if (stored.auto) return field.auto[lang];
       stored = stored.value;
@@ -54,6 +54,11 @@
           return Format.rate(value, lang, { decimals: decimals });
         }).join(', ');
       case 'choice':
+        /* A select with an "other" escape hatch emits what the visitor typed, not the word
+           "other" — the model needs the portfolio, not the fact that it was off-list. */
+        if (field.other && stored === 'other' && group && group[field.other]) {
+          return String(group[field.other]);
+        }
         return optionLabel(field.options, stored, lang);
       case 'choiceList':
         return optionLabels(field.options, stored, lang).join(', ');
@@ -81,7 +86,7 @@
       const group = (variables && variables[section.key]) || {};
       section.fields.forEach(function (field) {
         lines.push('- ' + field.label[lang] + SEPARATOR[lang] +
-                   '[' + renderValue(field, group[field.key], lang) + ']');
+                   '[' + renderValue(field, group[field.key], lang, group) + ']');
       });
     });
 

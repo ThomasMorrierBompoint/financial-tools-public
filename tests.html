@@ -32,6 +32,7 @@
   <script src="./js/utils/delta-text.js"></script>
   <script src="./js/utils/levier-defaults.js"></script>
   <script src="./js/utils/levier-prompt.js"></script>
+  <script src="./js/utils/levier-validate.js"></script>
 
   <!-- Every brand pack, so the contrast cases below cover all of them. -->
   <script src="./brands/bnc.js"></script>
@@ -516,6 +517,65 @@
     });
     test('the token estimate tracks length', function () {
       eq(LevierPrompt.estimateTokens('a'.repeat(350)), 100);
+    });
+
+    group('levier-prompt.js — the free-text escape hatch');
+    test('choosing "other" emits what was typed, not the word other', function () {
+      const values = LevierDefaults.values();
+      values.investment.portfolioType = 'other';
+      values.investment.portfolioOther = 'obligations à rendement réel';
+      const line = LevierPrompt.renderVariables(values, 'fr').split('\n')
+        .find(function (l) { return l.indexOf('Type de portefeuille') > -1; });
+      eq(line, '- Type de portefeuille : [obligations à rendement réel]');
+    });
+    test('"other" with nothing typed falls back to the option label', function () {
+      const values = LevierDefaults.values();
+      values.investment.portfolioType = 'other';
+      const line = LevierPrompt.renderVariables(values, 'en').split('\n')
+        .find(function (l) { return l.indexOf('Portfolio type') > -1; });
+      eq(line, '- Portfolio type: [other]');
+    });
+
+    group('levier-validate.js');
+    test('the defaults raise nothing', function () {
+      eq(LevierValidate.validate(LevierDefaults.values()).length, 0);
+    });
+    test('investing a different amount than was borrowed is flagged', function () {
+      const values = LevierDefaults.values();
+      values.investment.amountInvested = 80000;
+      const ids = LevierValidate.validate(values).map(function (n) { return n.id; });
+      eq(ids.indexOf('investedDiffersFromBorrowed') > -1, true);
+    });
+    test('Auto tax rate with no province is flagged against the province field', function () {
+      const values = LevierDefaults.values();
+      values.investor.province = '';
+      const notice = LevierValidate.validate(values)
+        .find(function (n) { return n.id === 'taxRateAutoWithoutProvince'; });
+      eq(!!notice, true, 'raised');
+      eq(notice.field, 'province', 'points at what the visitor has to fix');
+    });
+    test('a province with the tax rate off Auto raises nothing', function () {
+      const values = LevierDefaults.values();
+      values.investor.province = '';
+      values.investor.taxRate = { auto: false, value: 45 };
+      const ids = LevierValidate.validate(values).map(function (n) { return n.id; });
+      eq(ids.indexOf('taxRateAutoWithoutProvince'), -1);
+    });
+    test('a horizon past the amortization is flagged, and says which', function () {
+      const values = LevierDefaults.values();
+      values.financing.horizons = [5, 25, 30];
+      values.financing.amortization = 20;
+      const notice = LevierValidate.validate(values)
+        .find(function (n) { return n.id === 'horizonBeyondAmortization'; });
+      eq(!!notice, true, 'raised');
+      eq(notice.params.horizons, '25, 30', 'only the offending horizons');
+      eq(notice.params.amortization, 20);
+    });
+    test('a horizon equal to the amortization is fine', function () {
+      const values = LevierDefaults.values();
+      values.financing.horizons = [20];
+      values.financing.amortization = 20;
+      eq(LevierValidate.validate(values).length, 0);
     });
 
     group('contrast.js');
