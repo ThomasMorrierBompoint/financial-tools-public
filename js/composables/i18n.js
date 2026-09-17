@@ -118,6 +118,14 @@
       'home.soonBlurb': 'Le premier outil arrive : un générateur de prompt d’analyse de levier ' +
                         'financier.',
 
+      'levier.buildingNote': 'Cet outil est en construction : le formulaire des variables et ' +
+                             'les deux éditeurs arrivent. L’aperçu ci-dessous est généré à ' +
+                             'partir des valeurs par défaut.',
+      'levier.previewHeading': 'Aperçu du prompt',
+      'levier.previewNote': 'Le prompt est dérivé des variables, jamais stocké. Il reproduit la ' +
+                            'structure du prompt source, section par section.',
+      'levier.counts': '{characters} caractères · environ {tokens} jetons (estimation)',
+
       'footer.site': 'Le site',
       'footer.about': 'À propos',
       'footer.source': 'Code source',
@@ -156,6 +164,14 @@
       'home.soon': 'Coming soon',
       'home.soonBlurb': 'The first tool is on its way: a financial leverage analysis prompt ' +
                         'generator.',
+
+      'levier.buildingNote': 'This tool is being built: the variables form and the two editors ' +
+                             'are on their way. The preview below is generated from the default ' +
+                             'values.',
+      'levier.previewHeading': 'Prompt preview',
+      'levier.previewNote': 'The prompt is derived from the variables, never stored. It ' +
+                            'reproduces the structure of the source prompt, section by section.',
+      'levier.counts': '{characters} characters · about {tokens} tokens (estimate)',
 
       'footer.site': 'The site',
       'footer.about': 'About',

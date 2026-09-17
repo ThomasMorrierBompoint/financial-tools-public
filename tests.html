@@ -30,6 +30,8 @@
   <script src="./js/utils/contrast.js"></script>
   <script src="./js/composables/scenario.js"></script>
   <script src="./js/utils/delta-text.js"></script>
+  <script src="./js/utils/levier-defaults.js"></script>
+  <script src="./js/utils/levier-prompt.js"></script>
 
   <!-- Every brand pack, so the contrast cases below cover all of them. -->
   <script src="./brands/bnc.js"></script>
@@ -311,6 +313,209 @@
           }
         });
       });
+    });
+
+    /* ─── levier-prompt.js — structural fidelity to the source files ────────────────────────────
+
+       The tool plan §3.4 makes this the acceptance test for prompt assembly: with every field at
+       its default, the generated VARIABLES block must reproduce the source file's structure — the
+       same headings in the same order, the same bullet labels, the same [value] bracketing, and
+       any Auto instruction verbatim.
+
+       Number presentation is the one permitted difference: Intl emits U+00A0 where the file has an
+       ASCII space. normalize() collapses exactly that class of difference and nothing else, so a
+       renamed label or a dropped bullet still fails. The third case pins it down further — it
+       asserts the raw strings differ only at whitespace, which is what stops normalize() from
+       quietly hiding a real change. ───────────────────────────────────────────────────────────── */
+
+    const SOURCE_FR = [
+      "# **VARIABLES**",
+      "",
+      "Utilise les paramètres suivants pour l’ensemble de l’analyse. Ne modifie pas ces hypothèses sauf si une donnée est manifestement incohérente; dans ce cas, signale-le avant de faire l’hypothèse nécessaire.",
+      "",
+      "## **Financement**",
+      "",
+      "- Montant emprunté : [100 000 $]",
+      "- Type de financement : [tranche hypothécaire]",
+      "- Taux initial : [3,9 %]",
+      "- Type de taux : [variable]",
+      "- Amortissement : [20 ans]",
+      "- Fréquence des paiements : [mensuelle]",
+      "- Horizons analysés : [5, 10, 15, 20 ans]",
+      "- Frais de financement : [0 $]",
+      "- Intérêts fiscalement déductibles : [selon règles fiscales applicables]",
+      "",
+      "## **Investisseur et fiscalité**",
+      "",
+      "- Revenu annuel imposable : [140 000 $]",
+      "- Province de résidence fiscale : [Québec]",
+      "- Types de comptes à comparer : [CELI, compte non enregistré]",
+      "- Taux d’imposition : [calculer selon revenu et province]",
+      "",
+      "## **Investissement**",
+      "",
+      "- Montant initial investi : [100 000 $]",
+      "- Type de portefeuille : [portefeuille diversifié d’ETF]",
+      "- Rendements annuels à tester : [2 %, 4 %, 6 %, 8 %, 10 %]",
+      "- Frais de gestion annuels : [0,20 %]",
+      "- Inflation annuelle : [2 %]",
+      "- Contributions supplémentaires : [0 $]",
+      "",
+      "## **Scénarios de marché**",
+      "",
+      "- Correction boursière : [-30 %]",
+      "- Moment du krach : [début, milieu et fin de l’horizon]",
+      "- Rendement après le krach : [selon rendement testé]",
+      "",
+      "## **Taux d’intérêt**",
+      "",
+      "Analyser :",
+      "",
+      "- scénario de référence : [taux constant]",
+      "- scénario favorable : [à déterminer]",
+      "- scénario défavorable : [à déterminer]",
+      "",
+      "## **Simulation probabiliste**",
+      "",
+      "- Simulation Monte-Carlo : [oui]",
+      "- Nombre de simulations : [10 000]",
+      "- Rendement moyen : [à déterminer selon portefeuille]",
+      "- Volatilité annuelle : [à déterminer selon portefeuille]",
+      "- Percentiles : [P10, P25, P50, P75, P90]"
+    ];
+
+    const SOURCE_EN = [
+      "# **VARIABLES**",
+      "",
+      "Use the following parameters for the entire analysis. Do not modify these assumptions unless a data point is manifestly inconsistent; in that case, flag it before making the necessary assumption.",
+      "",
+      "## **Financing**",
+      "",
+      "- Amount borrowed: [$100,000]",
+      "- Type of financing: [mortgage tranche]",
+      "- Initial rate: [3.9%]",
+      "- Rate type: [variable]",
+      "- Amortization: [20 years]",
+      "- Payment frequency: [monthly]",
+      "- Horizons analyzed: [5, 10, 15, 20 years]",
+      "- Financing fees: [$0]",
+      "- Tax-deductible interest: [according to applicable tax rules]",
+      "",
+      "## **Investor and taxation**",
+      "",
+      "- Annual taxable income: [$140,000]",
+      "- Province of tax residence: [Quebec]",
+      "- Account types to compare: [TFSA, non-registered account]",
+      "- Tax rate: [calculate based on income and province]",
+      "",
+      "## **Investment**",
+      "",
+      "- Initial amount invested: [$100,000]",
+      "- Portfolio type: [diversified ETF portfolio]",
+      "- Annual returns to test: [2%, 4%, 6%, 8%, 10%]",
+      "- Annual management fees: [0.20%]",
+      "- Annual inflation: [2%]",
+      "- Additional contributions: [$0]",
+      "",
+      "## **Market scenarios**",
+      "",
+      "- Market correction: [-30%]",
+      "- Timing of the crash: [beginning, middle and end of the horizon]",
+      "- Return after the crash: [according to the return being tested]",
+      "",
+      "## **Interest rates**",
+      "",
+      "Analyze:",
+      "",
+      "- baseline scenario: [constant rate]",
+      "- favorable scenario: [to be determined]",
+      "- unfavorable scenario: [to be determined]",
+      "",
+      "## **Probabilistic simulation**",
+      "",
+      "- Monte Carlo simulation: [yes]",
+      "- Number of simulations: [10,000]",
+      "- Average return: [to be determined based on the portfolio]",
+      "- Annual volatility: [to be determined based on the portfolio]",
+      "- Percentiles: [P10, P25, P50, P75, P90]"
+    ];
+
+    function normalize(line) {
+      return line.replace(/[  ]/g, ' ').replace(/−/g, '-');
+    }
+
+    function fidelity(lang, expected) {
+      const generated = LevierPrompt.renderVariables(LevierDefaults.values(), lang).split('\n');
+      eq(generated.length, expected.length, 'line count');
+      expected.forEach(function (line, i) {
+        eq(normalize(generated[i]), normalize(line), 'line ' + (i + 1));
+      });
+    }
+
+    group('levier-prompt.js — fidelity to the source prompt');
+    test('the fr VARIABLES block reproduces the source structure', function () {
+      fidelity('fr', SOURCE_FR);
+    });
+    test('the en VARIABLES block reproduces the source structure', function () {
+      fidelity('en', SOURCE_EN);
+    });
+    test('fr differs from the source only in whitespace, never in wording', function () {
+      const generated = LevierPrompt.renderVariables(LevierDefaults.values(), 'fr').split('\n');
+      SOURCE_FR.forEach(function (line, i) {
+        const a = Array.from(line), b = Array.from(generated[i]);
+        eq(b.length, a.length, 'line ' + (i + 1) + ' length');
+        a.forEach(function (ch, j) {
+          if (ch === b[j]) return;
+          if (!/\s/.test(ch) || !/\s/.test(b[j])) {
+            throw new Error('line ' + (i + 1) + ' differs at ' + j + ': ' +
+                            JSON.stringify(ch) + ' vs ' + JSON.stringify(b[j]));
+          }
+        });
+      });
+    });
+
+    group('levier-prompt.js — Auto fields');
+    test('an Auto field emits its instruction verbatim, not a number', function () {
+      const line = LevierPrompt.renderVariables(LevierDefaults.values(), 'fr').split('\n')
+        .find(function (l) { return l.indexOf('Taux d’imposition') > -1; });
+      eq(line, '- Taux d’imposition : [calculer selon revenu et province]');
+    });
+    test('turning Auto off emits the formatted value instead', function () {
+      const values = LevierDefaults.values();
+      values.investor.taxRate = { auto: false, value: 45.5 };
+      const line = LevierPrompt.renderVariables(values, 'en').split('\n')
+        .find(function (l) { return l.indexOf('Tax rate') > -1; });
+      eq(line, '- Tax rate: [45.50%]');
+    });
+    test('the English instruction is used in English', function () {
+      const line = LevierPrompt.renderVariables(LevierDefaults.values(), 'en').split('\n')
+        .find(function (l) { return l.indexOf('Average return') > -1; });
+      eq(line, '- Average return: [to be determined based on the portfolio]');
+    });
+    test('a multi-choice phrase joins with the locale conjunction', function () {
+      const line = LevierPrompt.renderVariables(LevierDefaults.values(), 'fr').split('\n')
+        .find(function (l) { return l.indexOf('Moment du krach') > -1; });
+      eq(line, '- Moment du krach : [début, milieu et fin de l’horizon]');
+    });
+
+    group('levier-prompt.js — assembly');
+    test('the preamble comes first and the prose follows the rule', function () {
+      const prompt = LevierPrompt.assemble({
+        variables: LevierDefaults.values(),
+        analysis: '# **ANALYSE**',
+        presentation: '# **PRÉSENTATION DES RÉSULTATS**'
+      }, 'fr');
+      eq(prompt.slice(0, 24), 'Agis comme un analyste f', 'preamble first');
+      eq(prompt.indexOf('# **VARIABLES**') > -1, true, 'variables present');
+      eq(prompt.indexOf('\n---\n') > -1, true, 'rule between variables and prose');
+      eq(prompt.indexOf('# **ANALYSE**') < prompt.indexOf('DES RÉSULTATS'), true, 'order');
+    });
+    test('missing prose leaves no trailing separators', function () {
+      const prompt = LevierPrompt.assemble({ variables: LevierDefaults.values() }, 'en');
+      eq(prompt.endsWith('---'), true, 'ends at the rule when there is no prose yet');
+    });
+    test('the token estimate tracks length', function () {
+      eq(LevierPrompt.estimateTokens('a'.repeat(350)), 100);
     });
 
     group('contrast.js');

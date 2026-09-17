@@ -16,7 +16,7 @@ window.TOOLS = [
              en: 'Turn your variables into a complete analysis prompt, ready for the model of ' +
                  'your choice.' },
     icon: 'pi pi-chart-line',
-    page: 'SoonPage',
-    status: 'soon'
+    page: 'LevierPage',
+    status: 'ready'
   }
 ];

@@ -76,6 +76,14 @@
     return new Intl.DateTimeFormat(localeFor(lang), shape).format(d);
   }
 
+  /* "a, b et c" (fr) · "a, b and c" (en) — Intl.ListFormat, for the same reason money goes through
+     Intl: the conjunction and the comma rules are locale data, not something to hand-assemble. */
+  function list(items, lang, options) {
+    const type = (options && options.type) || 'conjunction';
+    return new Intl.ListFormat(localeFor(lang), { style: 'long', type: type })
+      .format((items || []).map(String));
+  }
+
   window.Format = {
     LOCALE: LOCALE,
     CURRENCY: CURRENCY,
@@ -84,6 +92,7 @@
     percent: percent,
     rate: rate,
     number: number,
-    date: date
+    date: date,
+    list: list
   };
 })();

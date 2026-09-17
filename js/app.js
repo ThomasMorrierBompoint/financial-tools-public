@@ -200,9 +200,17 @@
 
   app.directive('tooltip', PrimeVue.Tooltip);
 
-  ['LegalLine', 'ShareLink', 'HomePage', 'SoonPage'].forEach(function (name) {
-    app.component(name, window[name]);
-  });
+  /* Shared components, plus every page the registry routes to. Reading the page names from the
+     registry rather than repeating them is what keeps adding a tool to one entry plus its <script>
+     tags — foundation plan §5, which says to fix a missing abstraction here instead of
+     special-casing the tool. */
+  ['LegalLine', 'ShareLink', 'HomePage', 'SoonPage']
+    .concat(window.TOOLS.map(function (tool) { return tool.page; }))
+    .filter(function (name, i, all) { return all.indexOf(name) === i; })
+    .forEach(function (name) {
+      if (!window[name]) throw new Error(name + ' is routed to by the registry but not loaded');
+      app.component(name, window[name]);
+    });
 
   app.mount('#app');
 })();
