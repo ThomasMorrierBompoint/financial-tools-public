@@ -1,0 +1,192 @@
+/* Layout and page-level styles (design.md §12). Structure only — colour and type live in
+   variables.css and theme.css. */
+
+/* ─── Page frame ────────────────────────────────────────────────────────────────────────────── */
+
+/* The app fills the viewport so the footer sits at the bottom of a short page. */
+#app { min-height: 100vh; display: flex; flex-direction: column; }
+#app > main { flex: 1 0 auto; }
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: 15px;
+}
+
+.container-narrow { max-width: var(--container-narrow); }
+
+/* Sections alternate surface-0 → surface-100 → dark; 64–80px of vertical padding. */
+.section        { padding-block: var(--space-8); }
+.section-tall   { padding-block: var(--space-10); }
+
+/* ─── Grids ─────────────────────────────────────────────────────────────────────────────────── */
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+/* Calculator pages: inputs left ~40%, results right ~60% (design.md §12). */
+.layout-tool {
+  display: grid;
+  grid-template-columns: 4fr 6fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.stack   { display: flex; flex-direction: column; gap: var(--space-2); }
+.stack-3 { display: flex; flex-direction: column; gap: var(--space-3); }
+.row     { display: flex; align-items: center; gap: var(--space-2); }
+
+/* ─── Shell: utility bar, header, footer (design.md §11) ────────────────────────────────────── */
+
+.utility-bar { font-size: 14px; }
+
+.utility-bar-inner {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 40px;
+}
+
+.lang-toggle { display: flex; align-items: center; gap: var(--space-1); }
+
+.lang-toggle button {
+  min-height: 44px;                /* touch target — tablets are touch devices */
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: .3px;
+  cursor: pointer;
+}
+
+/* The active language is marked by weight and an underline, never by colour alone. */
+.lang-toggle button[aria-current="true"] {
+  font-weight: var(--brand-weight-display);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: default;
+}
+
+.lang-separator { opacity: .6; }
+
+.main-bar { background: var(--surface-0); box-shadow: var(--shadow-header); }
+
+.main-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 72px;
+}
+
+.brand-link { display: inline-flex; align-items: center; }
+.brand-link img { display: block; height: 40px; width: auto; }
+
+.site-nav { display: flex; align-items: center; gap: var(--space-1); }
+
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border-radius: var(--brand-radius-card);
+  color: var(--brand-heading);
+  font-size: 16px;
+  font-weight: var(--brand-weight-medium);
+  text-decoration: none;
+}
+
+.site-nav a:hover { background: var(--surface-100); text-decoration: none; }
+
+/* Current page: a subtle wash plus a heavier weight — two signals, not colour alone. */
+.site-nav a[aria-current="page"] {
+  background: var(--brand-primary-wash);
+  color: var(--brand-primary-hover);
+  font-weight: var(--brand-weight-display);
+}
+
+.site-footer { margin-top: var(--space-10); padding-block: var(--space-6); }
+
+.footer-columns {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.footer-columns img { height: 40px; width: auto; }
+
+.footer-heading {
+  margin: 0 0 var(--space-1);
+  color: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: var(--brand-weight-medium);
+}
+
+.footer-links { margin: 0; padding: 0; list-style: none; }
+.footer-links li { margin-bottom: var(--space-1); }
+.footer-links a { font-size: 14px; font-weight: var(--brand-weight-regular); }
+
+.footer-legal {
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid color-mix(in srgb, var(--brand-primary-contrast) 25%, transparent);
+  max-width: var(--container-narrow);
+}
+
+/* ─── Tool cards ────────────────────────────────────────────────────────────────────────────── */
+
+.tool-grid { margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+
+.tool-card { height: 100%; }
+
+.tool-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: var(--brand-weight-regular);
+}
+
+.tool-card-title i { color: var(--brand-primary); font-size: 1.25rem; }
+.tool-card-title a { color: var(--brand-heading); }
+.tool-card-title a:hover { color: var(--brand-primary-hover); }
+
+/* ─── Shared components ─────────────────────────────────────────────────────────────────────── */
+
+.legal-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  max-width: var(--container-narrow);
+  margin-top: var(--space-3);
+  color: var(--brand-text-muted);
+}
+
+.legal-line i { font-size: 1rem; }
+
+/* ─── Responsive: 1024–1199px keeps the layout, drops a column (design.md §12) ───────────────── */
+
+@media (max-width: 1199px) {
+  .grid-cards { grid-template-columns: repeat(2, 1fr); }
+  .section      { padding-block: var(--space-6); }
+  .section-tall { padding-block: var(--space-8); }
+}
+
+/* Tables scroll inside their container rather than shrinking type. */
+.table-scroll { overflow-x: auto; }
+
+/* ─── Print (design.md §9) ──────────────────────────────────────────────────────────────────── */
+
+@media print {
+  .utility-bar, .site-header, .site-footer, .no-print { display: none; }
+  #app { min-height: 0; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 11px; }
+}

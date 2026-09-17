@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <title>Page introuvable · Outils financiers</title>
+  <script>
+    /* GitHub Pages serves this file at the REQUESTED path, so a relative redirect to "./#/" from
+       /<repo>/typo/deep would land on /<repo>/typo/#/ and 404 again. Derive the repository root
+       from the pathname instead: on <user>.github.io the first segment is the repository; on a
+       custom domain the root is "/". */
+    (function () {
+      var segments = location.pathname.split('/').filter(Boolean);
+      var onGithubIo = /(^|\.)github\.io$/i.test(location.hostname);
+      var root = onGithubIo && segments.length ? '/' + segments[0] + '/' : '/';
+      location.replace(root + '#/');
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirection… · Redirecting…</p>
+  <p><a href="/">Retour à l'accueil · Back to home</a></p>
+</body>
+</html>

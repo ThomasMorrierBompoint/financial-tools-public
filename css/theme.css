@@ -1,0 +1,173 @@
+/* Base element styling, the product type scale (design.md §6) and the PrimeVue-facing overrides
+   the preset cannot express. Semantic tokens only — never a raw hex, never !important. */
+
+/* ─── Reset ─────────────────────────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--brand-text);
+  font-family: var(--brand-font);
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: .5px;
+  font-weight: var(--brand-weight-regular);
+}
+
+img, svg { max-width: 100%; }
+
+/* ─── Type scale (design.md §6) ──────────────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--brand-font-display);
+  color: var(--brand-heading);
+  letter-spacing: .3px;
+}
+
+h1 { font-size: 50px; line-height: 54px; font-weight: var(--brand-weight-display); }
+h2 { font-size: 38px; line-height: 44px; font-weight: var(--brand-weight-light); }
+h3 { font-size: 24px; line-height: 28px; font-weight: var(--brand-weight-regular); }
+h4 { font-size: 18px; line-height: 24px; font-weight: var(--brand-weight-medium);
+     color: var(--brand-dark); }
+
+p { margin: 0 0 var(--space-2); }
+
+a {
+  color: var(--brand-accent);
+  font-weight: var(--brand-weight-display);
+  letter-spacing: .3px;
+  text-decoration: none;
+  transition: color .2s ease;
+}
+a:hover { text-decoration: underline; }
+
+.lead   { font-size: 24px; line-height: 28px; letter-spacing: .3px; }
+.small  { font-size: 14px; line-height: 20px; }
+.legal  { font-size: 12px; line-height: 18px; }   /* never smaller than 12px */
+.muted  { color: var(--brand-text-muted); }
+
+/* The signature move of a results panel: a 14px medium label over a 40px ultralight figure. */
+.result-label  { font-size: 14px; line-height: 20px; letter-spacing: .3px;
+                 font-weight: var(--brand-weight-medium); color: var(--brand-text-muted); }
+.result-figure { font-size: 40px; line-height: 44px; letter-spacing: .75px;
+                 font-weight: var(--brand-weight-ultralight); color: var(--brand-heading); }
+
+/* Every number in the product, everywhere. */
+.result-figure, .tabular, table td, table th { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1199px) {
+  h1 { font-size: 36px; line-height: 40px; }
+  h2 { font-size: 30px; line-height: 36px; }
+  .lead { font-size: 18px; line-height: 24px; font-weight: var(--brand-weight-medium); }
+  .result-figure { font-size: 28px; line-height: 32px; }
+}
+
+/* ─── Shared blocks ─────────────────────────────────────────────────────────────────────────── */
+
+/* Dark sections: utility bar, footer, result hero (design.md §4, §12). */
+.dark-block {
+  background: var(--brand-dark);
+  color: var(--brand-primary-contrast);
+}
+.dark-block a { color: var(--brand-primary-contrast); }
+
+.surface-muted { background: var(--surface-100); }
+
+/* ─── Focus (design.md §13) ─────────────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 2px;
+}
+
+/* Skip link: present in the DOM first, visible only when focused. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-0);
+  color: var(--brand-accent);
+}
+.skip-link:focus {
+  left: var(--space-2);
+  top: var(--space-1);
+}
+
+/* ─── PrimeVue-facing ───────────────────────────────────────────────────────────────────────── */
+
+/* Buttons: design.md §11 — the preset carries radius and padding; min-width is layout, not theme. */
+.p-button { min-width: 128px; letter-spacing: .5px; }
+.p-button-text, .p-button-link { min-width: 0; }
+
+/* Touch targets stay at least 44px tall — tablets are touch devices (design.md §12). */
+.p-button, .p-inputtext, .p-select, .p-multiselect { min-height: 44px; }
+
+/* Numeric inputs and table money columns align right and use lining figures. */
+.p-inputnumber-input { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ─── Rich text: Quill 2 list markers ────────────────────────────────────────────────────────
+   PrimeVue 5.0.1 injects its own copy of Quill's stylesheet, re-authored against the preset, so
+   <PEditor> is themed by the active brand for free and quill.snow.css is never loaded. That copy,
+   however, predates Quill 2's list markup — verified by reading both shipped bundles:
+
+     · primevue@5.0.1/umd/primevue.min.js contains zero occurrences of "ql-ui" and "data-list";
+       it styles .ql-editor ol li:before with a decimal counter and sets list-style-type: none.
+     · quill@2.0.3 emits <ol><li data-list="bullet"><span class="ql-ui"> for BOTH bullets and
+       numbers, and draws every marker from li > .ql-ui::before.
+
+   Left alone, the native marker is suppressed and PrimeVue's Quill-1 counter renders "1. 2. 3."
+   in front of bulleted items as well. The rules below are lifted verbatim from quill@2.0.3's
+   quill.core.css, plus one line neutralising PrimeVue's obsolete counter. Delete the whole block
+   when PrimeVue ships Quill 2's list CSS. */
+
+.ql-editor li[data-list]::before { content: none; }        /* stand down, PrimeVue's Quill-1 rule */
+
+.ql-editor .ql-ui { position: absolute; }
+
+.ql-editor li > .ql-ui:before {
+  display: inline-block;
+  margin-left: -1.5em;
+  margin-right: .3em;
+  text-align: right;
+  white-space: nowrap;
+  width: 1.2em;
+}
+
+.ql-editor li[data-list=bullet] > .ql-ui:before { content: '\2022'; }
+
+@supports (counter-set: none) {
+  .ql-editor li[data-list] { counter-set: list-1 list-2 list-3; }
+  .ql-editor li[data-list].ql-indent-1 { counter-set: list-2 list-3; }
+  .ql-editor li[data-list].ql-indent-2 { counter-set: list-3; }
+}
+@supports not (counter-set: none) {
+  .ql-editor li[data-list] { counter-reset: list-1 list-2 list-3; }
+  .ql-editor li[data-list].ql-indent-1 { counter-reset: list-2 list-3; }
+  .ql-editor li[data-list].ql-indent-2 { counter-reset: list-3; }
+}
+
+.ql-editor li[data-list=ordered] { counter-increment: list-0; }
+.ql-editor li[data-list=ordered] > .ql-ui:before { content: counter(list-0, decimal) '. '; }
+
+.ql-editor li[data-list=ordered].ql-indent-1 { counter-increment: list-1; }
+.ql-editor li[data-list=ordered].ql-indent-1 > .ql-ui:before {
+  content: counter(list-1, lower-alpha) '. ';
+}
+
+.ql-editor li[data-list=ordered].ql-indent-2 { counter-increment: list-2; }
+.ql-editor li[data-list=ordered].ql-indent-2 > .ql-ui:before {
+  content: counter(list-2, lower-roman) '. ';
+}
+
+/* PrimeVue's copy carries the Quill-1 counters but not Quill 2's indent padding. */
+.ql-editor .ql-indent-1 { padding-left: 3em; }
+.ql-editor .ql-indent-2 { padding-left: 4.5em; }
+.ql-editor .ql-indent-3 { padding-left: 6em; }

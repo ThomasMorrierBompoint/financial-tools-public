@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 155 50" width="155" height="50" role="img" aria-label="Outils financiers">
+  <!-- Neutral placeholder mark. Deliberately abstract: no BNC logo, pictogram or wordmark. -->
+  <g fill="#ffffff">
+    <rect x="0" y="30" width="7" height="14" rx="2"/>
+    <rect x="11" y="21" width="7" height="23" rx="2"/>
+    <rect x="22" y="9" width="7" height="35" rx="2"/>
+  </g>
+  <text x="39" y="25" font-family="'Helvetica Neue',Arial,sans-serif" font-size="16" font-weight="600" fill="#ffffff">Outils</text>
+  <text x="39" y="42" font-family="'Helvetica Neue',Arial,sans-serif" font-size="14" font-weight="300" fill="#ffffff">financiers</text>
+</svg>

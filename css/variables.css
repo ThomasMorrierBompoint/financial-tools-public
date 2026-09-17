@@ -1,0 +1,64 @@
+/* Design tokens — two tiers (design.md §4).
+
+   Brand-owned values are overwritten at boot by js/services/brand.js from the active brand pack;
+   the literals below are the pre-boot defaults so an unstyled flash never happens. Product-owned
+   values are constants: identical in every brand.
+
+   These two blocks are the ONLY place a colour literal belongs outside brands/*.js. Product CSS
+   references semantic names and nothing else — that rule is the whole white-label mechanism. */
+
+:root {
+  /* ─── Brand-owned: set at runtime by the active brand pack ─── */
+  --brand-primary:          #e41c23;   /* action + accent */
+  --brand-primary-hover:    #be171d;
+  --brand-primary-active:   #a3141a;
+  --brand-primary-contrast: #ffffff;   /* text on primary */
+  --brand-primary-wash:     #fce6e7;   /* tinted background */
+
+  --brand-dark:             #00314d;   /* dark blocks: utility bar, footer, result hero */
+  --brand-dark-deep:        #001e2e;
+  --brand-heading:          #425865;   /* h1 / display colour      — 7.46:1 on white */
+  --brand-text:             #565656;   /* body copy                — 7.34:1 on white */
+  --brand-text-muted:       #566a7a;   /* labels, secondary copy   — 4.54:1 on --surface-200 */
+  --brand-accent:           #1572c5;   /* links, info, focus ring  — 4.95:1 on white */
+
+  --brand-font:             "Gilroy", "Figtree", "Helvetica Neue", Arial, sans-serif;
+  --brand-font-display:     var(--brand-font);
+
+  /* The type scale in design.md §6 names weights, never numbers. A brand whose family lacks a 200
+     or a 300 maps it to the nearest it has; the layout must not shift when it does. */
+  --brand-weight-ultralight:  200;     /* result figures */
+  --brand-weight-light:       300;     /* h2 */
+  --brand-weight-regular:     400;     /* body */
+  --brand-weight-medium:      500;     /* h4, labels, buttons */
+  --brand-weight-display:     600;     /* h1, links */
+
+  --brand-radius-button:    58px;      /* pill (BNC) vs 6px (a squarer brand) */
+  --brand-radius-card:      8px;
+
+  /* ─── Product-owned: identical in every brand ─── */
+  --surface-0:   #ffffff;
+  --surface-50:  #fafafa;
+  --surface-100: #efefef;
+  --surface-200: #e7e7e7;
+  --border:        #e1e1e1;
+  --border-strong: #d2d2d2;
+
+  /* The base colour is a FILL only. --success (2.69:1) and --warning (2.40:1) on white are below
+     even the 3:1 non-text threshold, so they can carry neither text nor a border. Text, icons and
+     borders use the -text variant. Ratios measured on white; re-measured per brand in §16. */
+  --success: #01b64b;  --success-bg: #edf7f1;  --success-text: #0a7a37;  /* 5.45:1 */
+  --warning: #e59700;  --warning-bg: #fff8e5;  --warning-text: #9a6600;  /* 4.91:1 */
+  --error:   #d0011b;  --error-bg:   #fdf0f0;  --error-text:   #d0011b;  /* 5.67:1 */
+  --info:    #315b7d;  --info-bg:    #eef5fa;  --info-text:    #315b7d;  /* 7.18:1 */
+
+  --shadow-card:   0 4px 16px 0 rgba(0,0,0,.10);
+  --shadow-hover:  0 4px 8px 0 rgba(0,0,0,.10);
+  --shadow-header: 0 2px 5px rgba(0,0,0,.10);
+  --focus-ring:    0 0 0 3px color-mix(in srgb, var(--brand-accent) 80%, transparent);
+
+  --container:        1200px;
+  --container-narrow:  760px;   /* long-form reading column */
+  --space-1: 8px; --space-2: 16px; --space-3: 24px; --space-4: 32px;
+  --space-6: 48px; --space-8: 64px; --space-10: 80px;
+}

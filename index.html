@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Outils financiers</title>
+  <meta name="description" content="Des outils financiers clairs, gratuits et sans inscription, pour comprendre vos décisions financières.">
+
+  <!-- PrimeVue's Chart dynamically imports "chart.js/auto"; this import map is what makes a bare
+       specifier resolve with no bundler. Drop it only if no tool uses a chart. -->
+  <script type="importmap">
+  { "imports": { "chart.js/auto": "https://cdn.jsdelivr.net/npm/chart.js@4.5.0/auto/+esm" } }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/primeicons@7.0.0/primeicons.css">
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/theme.css">
+  <link rel="stylesheet" href="./css/app.css">
+  <!-- brand fonts and favicon are injected at boot by js/services/brand.js — see design.md §5 -->
+  <!-- Quill's own stylesheet is deliberately NOT loaded; PrimeVue ships a themed copy. -->
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/vue@3.5.42/dist/vue.global.prod.js"></script>
+  <!-- Quill MUST come before PrimeVue: PrimeVue reads window.Quill once, at evaluation time. -->
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+  <script src="https://unpkg.com/primevue@5.0.1/umd/primevue.min.js"></script>
+  <script src="https://unpkg.com/@primeuix/themes@3.0.0/umd/aura.js"></script>
+
+  <script src="./js/license.js"></script>          <!-- window.PRIMEUI_LICENSE -->
+  <script src="./js/config.js"></script>           <!-- DEFAULT_BRAND, flags -->
+  <script src="./brands/bnc.js"></script>          <!-- every pack registers on window.BRANDS -->
+  <script src="./brands/slate.js"></script>        <!-- one tag per pack; brand.js picks one -->
+  <script src="./js/services/brand.js"></script>   <!-- selects + applies, once, before mount -->
+  <script src="./js/composables/i18n.js"></script>
+  <script src="./js/utils/format.js"></script>
+  <script src="./js/utils/contrast.js"></script>
+  <script src="./js/composables/scenario.js"></script>
+  <script src="./js/utils/delta-text.js"></script>
+
+  <!-- No bundler and no module loader, so every component, page and util needs its own tag.
+       Adding a tool means adding its two tags here. Everything loads up front, on purpose:
+       the files are small and lazy-loading is not worth the machinery (foundation plan §5). -->
+  <script src="./js/components/legal-line.js"></script>
+  <script src="./js/components/share-link.js"></script>
+  <script src="./js/pages/home.js"></script>
+  <script src="./js/pages/soon.js"></script>
+
+  <script src="./js/tools.js"></script>            <!-- tool registry -->
+  <script src="./js/app.js"></script>
+</body>
+</html>

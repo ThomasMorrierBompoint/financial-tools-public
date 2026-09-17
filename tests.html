@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <title>Tests · Outils financiers</title>
+  <style>
+    body { font: 14px/20px "Helvetica Neue", Arial, sans-serif; margin: 32px; color: #333; }
+    h1 { font-size: 24px; }
+    #summary { font-size: 18px; padding: 12px 16px; border-radius: 6px; display: inline-block; }
+    .ok   { background: #edf7f1; color: #0a7a37; }
+    .bad  { background: #fdf0f0; color: #d0011b; }
+    table { border-collapse: collapse; margin-top: 24px; width: 100%; max-width: 1000px; }
+    td, th { text-align: left; padding: 6px 12px; border-bottom: 1px solid #e1e1e1; vertical-align: top; }
+    th { font-weight: 600; }
+    tr.fail td { background: #fdf0f0; }
+    code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    .group td { background: #fafafa; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Tests</h1>
+  <p>Assertions over the pure functions in <code>js/utils/</code>. No framework, no build step —
+     open this page and read the count (design.md §10.1).</p>
+  <div id="summary">…</div>
+  <table id="results"><thead><tr><th>Case</th><th>Detail</th></tr></thead><tbody></tbody></table>
+
+  <!-- The same files, loaded the same way as in index.html. scenario.js is a composable, but its
+       codec half is pure and is what these cases exercise; use() needs Vue and a page. -->
+  <script src="./js/utils/format.js"></script>
+  <script src="./js/utils/contrast.js"></script>
+  <script src="./js/composables/scenario.js"></script>
+  <script src="./js/utils/delta-text.js"></script>
+
+  <!-- Every brand pack, so the contrast cases below cover all of them. -->
+  <script src="./brands/bnc.js"></script>
+  <script src="./brands/slate.js"></script>
+
+  <script>
+  /* ─── Harness: an eq(), a close() for floats, and a counter. Anything larger has stopped being
+         worth it (design.md §10.1). ─────────────────────────────────────────────────────────── */
+  (function () {
+    'use strict';
+
+    const rows = [];
+    let passed = 0, failed = 0;
+
+    function show(value) {
+      if (typeof value !== 'string') return String(value);
+      /* Spell out the invisible characters: the fr-CA separator is U+00A0, and a failure here is
+         usually a separator, not a digit. */
+      return '"' + value.replace(/ /g, '\\u00a0').replace(/ /g, '\\u202f') + '"';
+    }
+
+    function eq(actual, expected, label) {
+      if (actual !== expected) {
+        throw new Error((label ? label + ' — ' : '') + 'expected ' + show(expected) +
+                        ', got ' + show(actual));
+      }
+    }
+
+    function close(actual, expected, epsilon, label) {
+      if (!(Math.abs(actual - expected) <= epsilon)) {
+        throw new Error((label ? label + ' — ' : '') + 'expected ' + expected + ' ± ' + epsilon +
+                        ', got ' + actual);
+      }
+    }
+
+    function group(name) { rows.push({ group: name }); }
+
+    function test(name, fn) {
+      try { fn(); passed++; rows.push({ name: name, ok: true, detail: '' }); }
+      catch (error) { failed++; rows.push({ name: name, ok: false, detail: error.message }); }
+    }
+
+    function report() {
+      const summary = document.getElementById('summary');
+      summary.textContent = passed + ' passed, ' + failed + ' failed';
+      summary.className = failed ? 'bad' : 'ok';
+      document.title = (failed ? '✗ ' + failed + ' failed' : '✓ ' + passed + ' passed') +
+                       ' · Tests';
+
+      const body = document.querySelector('#results tbody');
+      rows.forEach(function (row) {
+        const tr = document.createElement('tr');
+        if (row.group) {
+          tr.className = 'group';
+          tr.innerHTML = '<td colspan="2">' + row.group + '</td>';
+        } else {
+          tr.className = row.ok ? 'pass' : 'fail';
+          tr.innerHTML = '<td>' + (row.ok ? '✓' : '✗') + ' ' + row.name + '</td>' +
+                         '<td><code>' + (row.detail || '') + '</code></td>';
+        }
+        body.appendChild(tr);
+      });
+    }
+
+    /* ─── js/utils/format.js ──────────────────────────────────────────────────────────────────
+           Source of truth: ECMA-402 / CLDR via the browser's own Intl. These cases pin the exact
+           Canadian output the product promises, invisible characters included — the fr-CA group
+           separator and the space before the dollar sign are U+00A0, and design.md §8 forbids
+           post-processing them into anything narrower. ──────────────────────────────────────── */
+
+    group('format.js — money');
+    test('fr-CA money', function () { eq(Format.money(1234.5, 'fr'), '1 234,50 $'); });
+    test('en-CA money', function () { eq(Format.money(1234.5, 'en'), '$1,234.50'); });
+    test('fr-CA money, no decimals', function () {
+      eq(Format.money(100000, 'fr', { decimals: 0 }), '100 000 $');
+    });
+    test('negative money keeps its sign', function () {
+      eq(Format.money(-250, 'en', { decimals: 0 }), '-$250');
+    });
+
+    group('format.js — rates and percentages');
+    test('fr-CA rate from points', function () { eq(Format.rate(4.25, 'fr'), '4,25 %'); });
+    test('en-CA rate from points', function () { eq(Format.rate(4.25, 'en'), '4.25%'); });
+    test('fr-CA percent from a fraction', function () {
+      eq(Format.percent(0.0425, 'fr'), '4,25 %');
+    });
+    test('rate and percent agree', function () {
+      eq(Format.rate(6, 'fr'), Format.percent(0.06, 'fr'));
+    });
+
+    group('format.js — numbers and dates');
+    test('fr-CA grouping', function () { eq(Format.number(100000, 'fr'), '100 000'); });
+    test('en-CA grouping', function () { eq(Format.number(100000, 'en'), '100,000'); });
+    test('short date is ISO-ordered in both languages', function () {
+      eq(Format.date('2026-09-16T12:00:00', 'fr'), '2026-09-16');
+      eq(Format.date('2026-09-16T12:00:00', 'en'), '2026-09-16');
+    });
+    test('long date is written out, never 09/16/2026', function () {
+      eq(Format.date('2026-09-16T12:00:00', 'fr', { style: 'long' }), '16 septembre 2026');
+    });
+
+    group('format.js — non-values');
+    test('NaN renders as an em dash, never "NaN"', function () {
+      eq(Format.money(NaN, 'fr'), '—');
+      eq(Format.rate(undefined, 'fr'), '—');
+      eq(Format.number(Infinity, 'en'), '—');
+    });
+    test('an invalid date renders as an em dash', function () {
+      eq(Format.date('not-a-date', 'fr'), '—');
+    });
+    test('an unknown language falls back to French', function () {
+      eq(Format.money(1234.5, 'de'), Format.money(1234.5, 'fr'));
+    });
+
+    /* ─── js/composables/scenario.js — the codec ────────────────────────────────────────────
+           A shared link's only job is refilling the form. These cases pin the two properties that
+           makes it survive: a malformed URL still yields a usable tool, and a parameter the
+           scenario does not own — lang above all — is never dropped. ──────────────────────── */
+
+    const SPEC = {
+      p: { default: 100000, type: 'number' },
+      n: { default: 25, type: 'integer' },
+      mc: { default: true, type: 'boolean' },
+      h: { default: [5, 10, 15], type: 'numbers' },
+      kind: { default: 'etf', type: 'string' }
+    };
+
+    group('scenario.js — decode');
+    test('an empty query gives the defaults', function () {
+      const state = Scenario.decode(SPEC, '');
+      eq(state.p, 100000); eq(state.n, 25); eq(state.mc, true); eq(state.kind, 'etf');
+      eq(state.h.join(','), '5,10,15');
+    });
+    test('values are read and typed', function () {
+      const state = Scenario.decode(SPEC, 'p=250000&n=20&mc=0&h=5,10&kind=actions');
+      eq(state.p, 250000); eq(state.n, 20); eq(state.mc, false); eq(state.kind, 'actions');
+      eq(state.h.join(','), '5,10');
+    });
+    test('a malformed value falls back to its default', function () {
+      const state = Scenario.decode(SPEC, 'p=abc&n=&h=,,');
+      eq(state.p, 100000); eq(state.n, 25); eq(state.h.join(','), '5,10,15');
+    });
+
+    group('scenario.js — encode');
+    test('defaults are dropped, so a shared URL stays readable', function () {
+      eq(Scenario.encode(SPEC, Scenario.decode(SPEC, ''), ''), '');
+    });
+    test('only what differs is written', function () {
+      const state = Scenario.decode(SPEC, '');
+      state.p = 250000;
+      eq(Scenario.encode(SPEC, state, ''), 'p=250000');
+    });
+    test('lang survives an encode — it is not the scenario\u2019s to drop', function () {
+      const state = Scenario.decode(SPEC, '');
+      state.n = 20;
+      const query = Scenario.encode(SPEC, state, 'lang=en');
+      eq(new URLSearchParams(query).get('lang'), 'en');
+      eq(new URLSearchParams(query).get('n'), '20');
+    });
+    test('returning a value to its default removes it from the URL', function () {
+      const state = Scenario.decode(SPEC, 'p=250000&lang=fr');
+      state.p = 100000;
+      eq(Scenario.encode(SPEC, state, 'p=250000&lang=fr'), 'lang=fr');
+    });
+    test('a scenario round-trips', function () {
+      const sent = Scenario.decode(SPEC, '');
+      sent.p = 175000; sent.n = 30; sent.mc = false; sent.h = [5, 25]; sent.kind = 'obligations';
+      const received = Scenario.decode(SPEC, Scenario.encode(SPEC, sent, ''));
+      Object.keys(SPEC).forEach(function (key) {
+        eq(String(received[key]), String(sent[key]), key);
+      });
+    });
+
+    /* ─── js/utils/delta-text.js ─────────────────────────────────────────────────────────────
+           Serialization is one-way: the Delta is the model, text is the output. These cases cover
+           the toolbar subset and nothing else, because the toolbar is what bounds the input. ── */
+
+    function delta(ops) { return { ops: ops }; }
+
+    group('delta-text.js');
+    test('a heading becomes a Markdown heading', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'Analyse' }, { insert: '\n', attributes: { header: 2 } }
+      ])), '## Analyse');
+    });
+    test('bold and italic wrap their run', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'du ' }, { insert: 'gras', attributes: { bold: true } },
+        { insert: ' et de l\u2019' }, { insert: 'italique', attributes: { italic: true } },
+        { insert: '\n' }
+      ])), 'du **gras** et de l\u2019*italique*');
+    });
+    test('a link keeps its target', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'Voir ' },
+        { insert: 'la source', attributes: { link: 'https://example.ca' } },
+        { insert: '\n' }
+      ])), 'Voir [la source](https://example.ca)');
+    });
+    test('inline code is literal — emphasis inside it is not applied', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'a*b*c', attributes: { code: true, bold: true } }, { insert: '\n' }
+      ])), '`a*b*c`');
+    });
+    test('a bulleted list becomes dashes', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'un' }, { insert: '\n', attributes: { list: 'bullet' } },
+        { insert: 'deux' }, { insert: '\n', attributes: { list: 'bullet' } }
+      ])), '- un\n- deux');
+    });
+    test('a numbered list counts, and nesting indents', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'un' }, { insert: '\n', attributes: { list: 'ordered' } },
+        { insert: 'un a' }, { insert: '\n', attributes: { list: 'ordered', indent: 1 } },
+        { insert: 'deux' }, { insert: '\n', attributes: { list: 'ordered' } }
+      ])), '1. un\n  1. un a\n2. deux');
+    });
+    test('a bulleted list running into a numbered one is split in two', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'un' }, { insert: '\n', attributes: { list: 'bullet' } },
+        { insert: 'deux' }, { insert: '\n', attributes: { list: 'ordered' } }
+      ])), '- un\n\n1. deux');
+    });
+    test('a code block is fenced and keeps its text literal', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'a = 1' }, { insert: '\n', attributes: { 'code-block': true } },
+        { insert: 'b = 2' }, { insert: '\n', attributes: { 'code-block': true } }
+      ])), '```\na = 1\nb = 2\n```');
+    });
+    test('blocks are separated by a blank line', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'Titre' }, { insert: '\n', attributes: { header: 1 } },
+        { insert: 'Un paragraphe.\n' },
+        { insert: 'un' }, { insert: '\n', attributes: { list: 'bullet' } }
+      ])), '# Titre\n\nUn paragraphe.\n\n- un');
+    });
+    test('an empty delta is an empty string', function () {
+      eq(DeltaText.toText(delta([])), '');
+      eq(DeltaText.toText(null), '');
+    });
+    test('an embed is skipped rather than serialized as [object Object]', function () {
+      eq(DeltaText.toText(delta([
+        { insert: 'avant ' }, { insert: { image: 'x.png' } }, { insert: 'après\n' }
+      ])), 'avant après');
+    });
+
+    /* ─── Brand packs — contrast (design.md §5 step 5, §16) ──────────────────────────────────
+           WCAG 2.1 AA: 4.5:1 for text. Measured, not asserted — and measured on the surfaces the
+           product actually renders, which is why textMuted is checked against --surface-200 and
+           not against white. Adding a pack to index.html adds it here automatically. ───────── */
+
+    const SURFACE = { s0: '#ffffff', s50: '#fafafa', s100: '#efefef', s200: '#e7e7e7' };
+
+    function pairings(colors) {
+      return [
+        ['primary on white',            colors.primary,         SURFACE.s0,          4.5],
+        ['contrast text on primary',    colors.primaryContrast, colors.primary,      4.5],
+        ['primaryHover on white',       colors.primaryHover,    SURFACE.s0,          4.5],
+        ['accent on white',             colors.accent,          SURFACE.s0,          4.5],
+        ['heading on white',            colors.heading,         SURFACE.s0,          4.5],
+        ['text on white',               colors.text,            SURFACE.s0,          4.5],
+        ['textMuted on surface-100',    colors.textMuted,       SURFACE.s100,        4.5],
+        ['textMuted on surface-200',    colors.textMuted,       SURFACE.s200,        4.5],
+        ['contrast text on dark block', colors.primaryContrast, colors.dark,         7.0],
+        ['text on primaryWash',         colors.text,            colors.primaryWash,  4.5],
+        ['primaryHover on primaryWash', colors.primaryHover,    colors.primaryWash,  4.5]
+      ];
+    }
+
+    group('brand packs — contrast');
+    Object.keys(window.BRANDS).forEach(function (id) {
+      pairings(window.BRANDS[id].colors).forEach(function (pair) {
+        const label = pair[0], foreground = pair[1], background = pair[2], minimum = pair[3];
+        test(id + ': ' + label, function () {
+          const measured = Contrast.ratio(foreground, background);
+          if (!(measured >= minimum)) {
+            throw new Error('needs ' + minimum + ':1, measured ' + measured.toFixed(2) + ':1 (' +
+                            foreground + ' on ' + background + ')');
+          }
+        });
+      });
+    });
+
+    group('contrast.js');
+    test('black on white is 21:1', function () {
+      close(Contrast.ratio('#000000', '#ffffff'), 21, 0.01);
+    });
+    test('the ratio is symmetric', function () {
+      close(Contrast.ratio('#1572c5', '#ffffff'), Contrast.ratio('#ffffff', '#1572c5'), 1e-12);
+    });
+    test('shorthand hex is accepted', function () {
+      close(Contrast.ratio('#fff', '#000'), 21, 0.01);
+    });
+
+    group('harness');
+    test('close() tolerates float drift', function () {
+      close(0.1 + 0.2, 0.3, 1e-12, 'floating point');
+    });
+
+    report();
+  })();
+  </script>
+</body>
+</html>
